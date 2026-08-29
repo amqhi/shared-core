@@ -13,8 +13,6 @@ namespace login_type
 }
 
 struct User {
-    /** Randomly generated directory name for identifying multiple sessions */
-    std::string local_id;
     std::string access_token;
     std::string refresh_token;
     std::string name;
@@ -23,10 +21,15 @@ struct User {
     std::int64_t expires_at = 0;
     std::int64_t created_at;
     std::int64_t updated_at;
+    char local_id;
     std::int8_t login_type;
 };
 
 void get_user_data(const std::string& app_support_path, User &user);
 void save_user_data(const std::string& app_support_path, User &user);
+
+inline constexpr char SAFE_CHARS[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+char created_user_local_id(const std::vector<User>& users);
 
 #endif //SHARED_USER_H

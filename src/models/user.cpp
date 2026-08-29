@@ -6,12 +6,13 @@
 
 #include "date_time_utils.h"
 #include "json_utils.h"
+#include "name_generator.h"
 
 namespace fs = std::filesystem;
 
 void get_user_data(const std::string& app_support_path, User& user)
 {
-    fs::path file_path = fs::path(app_support_path) / user.local_id / "profile";
+    fs::path file_path = fs::path(app_support_path) / std::string_view(&user.local_id, 1) / "profile";
     if (!std::filesystem::exists(file_path)) {
         return;
     }
@@ -48,7 +49,7 @@ void get_user_data(const std::string& app_support_path, User& user)
 
 void save_user_data(const std::string& app_support_path, User& user)
 {
-    fs::path file_path = fs::path(app_support_path) / user.local_id / "profile";
+    fs::path file_path = fs::path(app_support_path) / std::string_view(&user.local_id, 1) / "profile";
     if (!fs::exists(file_path.parent_path())) {
         fs::create_directories(file_path.parent_path());
     }
@@ -75,3 +76,24 @@ void save_user_data(const std::string& app_support_path, User& user)
     }
     file.close();
 }
+
+bool is_id_taken(const std::vector<User>& users, char target_id) noexcept {
+    return std::any_of(users.begin(), users.end(), [target_id](const User& u) {
+        return u.local_id == target_id;
+    });
+}
+
+char created_user_local_id(const std::vector<User>& users)
+{
+    for (char c : "0123456789abcdefghijklmnopqrstuvwxyz") {
+        if (c == '\0') break;
+
+        if (!is_id_taken(users, c)) {
+            return c;
+        }
+    }
+
+    return '\0';
+}
+
+
