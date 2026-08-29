@@ -4,11 +4,13 @@
 #include <string>
 #include <vector>
 #include <optional>
+
+#include "item.h"
 #include "json.hpp"
 
 struct ItemAttributes {
     std::string name;
-    std::string parent_id;
+    ItemId parent_id = special_folder::HOME;
     std::optional<std::string> comment = std::nullopt;
     std::optional<std::int64_t> event_at = std::nullopt;
     

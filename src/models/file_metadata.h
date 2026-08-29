@@ -2,13 +2,14 @@
 #define CLI_FILE_METADATA_H
 #include <string>
 
+#include "item.h"
 #include "sqlite3.h"
 
 struct FileMetadata
 {
-    std::string id;
     std::string checksum;
     std::string mime_type;
+    ItemId id;
     std::uint64_t size;
 };
 

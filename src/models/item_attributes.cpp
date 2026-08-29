@@ -7,9 +7,9 @@ void to_json(nlohmann::json& j, const ItemAttributes& attributes) {
             {"name", attributes.name}
     };
 
-    if (!attributes.parent_id.empty() && attributes.parent_id != special_folder::HOME && attributes.parent_id != special_folder::TRASH)
+    if (attributes.parent_id != special_folder::HOME && attributes.parent_id != special_folder::TRASH)
     {
-        j["parent_id"] = attributes.parent_id;
+        j["parent_id"] = attributes.parent_id.to_string();
     }
 
     if (attributes.comment.has_value())

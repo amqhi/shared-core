@@ -90,6 +90,127 @@ std::int8_t item_type::parse(std::string_view type)
     return UNKNOWN;
 }
 
+std::array<std::uint8_t, 16> ItemId::to_bytes() const noexcept
+{
+    std::array<std::uint8_t, 16> bytes{};
+    std::memcpy(bytes.data(), &high, 8);
+    std::memcpy(bytes.data() + 8, &low, 8);
+    return bytes;
+}
+
+ItemId ItemId::from_bytes(const void* blob_data) noexcept
+{
+    ItemId id{};
+    std::memcpy(&id.high, blob_data, 8);
+    std::memcpy(&id.low, static_cast<const std::uint8_t*>(blob_data) + 8, 8);
+    return id;
+}
+
+ItemId ItemId::from_string(std::string_view str) noexcept
+{
+    if (str.size() != 36 && str.size() != 32) {
+        return special_folder::UNKNOWN;
+    }
+
+    uint64_t high = 0;
+    uint64_t low = 0;
+    size_t hex_count = 0;
+
+    for (char c : str) {
+        if (c == '-') {
+            continue;
+        }
+
+        const std::int8_t nibble = hex_char_to_nibble(c);
+        if (nibble < 0) {
+            return special_folder::UNKNOWN;
+        }
+
+        if (hex_count < 16) {
+            high = (high << 4) | static_cast<uint64_t>(nibble);
+        } else if (hex_count < 32) {
+            low = (low << 4) | static_cast<uint64_t>(nibble);
+        } else {
+            return special_folder::UNKNOWN;
+        }
+
+        ++hex_count;
+    }
+
+    if (hex_count != 32) {
+        return special_folder::UNKNOWN;
+    }
+
+    return ItemId{high, low};
+}
+#if __cplusplus >= 202002L
+std::strong_ordering ItemId::operator<=>(const ItemId& other) const
+{
+    if (auto cmp = this->high <=> other.high; cmp != 0) {
+        return cmp;
+    }
+    return this->low <=> other.low;
+}
+#else
+bool ItemId::operator!=(const ItemId& other) const noexcept
+{
+    return !(*this == other);
+}
+bool ItemId::operator<(const ItemId& other) const noexcept
+{
+    return std::tie(high, low) < std::tie(other.high, other.low);
+}
+
+bool ItemId::operator<=(const ItemId& other) const noexcept
+{
+    return other >= *this;
+}
+
+bool ItemId::operator>(const ItemId& other) const noexcept
+{
+    return other < *this;
+}
+
+bool ItemId::operator>=(const ItemId& other) const noexcept
+{
+    return !(*this < other);
+}
+#endif
+
+bool ItemId::operator==(const ItemId& other) const
+{
+    return this->high == other.high && this->low == other.low;
+}
+
+[[nodiscard]] std::string ItemId::to_string() const
+{
+    std::string result(36, '-');
+
+    constexpr char hex_digits[] = "0123456789abcdef";
+
+
+    size_t char_idx = 0;
+    for (int i = 60; i >= 0; i -= 4) {
+        if (char_idx == 8 || char_idx == 13) {
+            ++char_idx;
+        }
+        uint8_t nibble = (high >> i) & 0x0F;
+        result[char_idx++] = hex_digits[nibble];
+    }
+
+
+    ++char_idx;
+    for (int i = 60; i >= 0; i -= 4) {
+        if (char_idx == 23) {
+            ++char_idx;
+        }
+        uint8_t nibble = (low >> i) & 0x0F;
+        result[char_idx++] = hex_digits[nibble];
+    }
+
+    return result;
+}
+
 void Item::save(sqlite3* db) const
 {
     if (db == nullptr) {
@@ -111,45 +232,42 @@ void Item::save(sqlite3* db) const
 
 }
 
-void Item::update(const ItemAttributes& item_attributes)
-{
-    name = item_attributes.name;
-    event_at = item_attributes.event_at;
-}
-
-void item_delete_on_local(const std::string& app_support_path, const std::string& user_id, sqlite3* db, const std::string& item_id)
+void item_delete_on_local(const std::string& app_support_path, const std::uint8_t user_local_id, sqlite3* db, const ItemId& item_id)
 {
     if (db == nullptr) {
         return;
     }
-
+    
     sqlite3_stmt* stmt = nullptr;
     const char* sql = "DELETE FROM items WHERE id = ?;";
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
         return;
     }
-    sqlite3_bind_text(stmt, 1, item_id.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_blob(stmt, 1, &item_id, sizeof(item_id), SQLITE_TRANSIENT);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 
-    std::filesystem::remove(item_local_directory_path(app_support_path, user_id, item_id));
+    std::filesystem::remove(item_local_directory_path(app_support_path, user_local_id, item_id));
 
 }
 
-std::filesystem::path item_local_directory_path(const std::string& app_support_path, const std::string& user_id, const std::string& id)
+std::filesystem::path item_local_directory_path(const std::string& app_support_path, const std::uint8_t user_local_id, const ItemId& id)
 {
-    return std::filesystem::path(app_support_path) / user_id / "files" / std::string(1, id.at(0)) / std::string(1, id.at(1)) / id;
+    std::string id_string = id.to_string();
+    return std::filesystem::path(app_support_path) / std::to_string(user_local_id) / "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string;
 }
 
-std::filesystem::path item_local_file_path(const std::string& app_support_path, const std::string& user_id, const std::string& id)
+std::filesystem::path item_local_file_path(const std::string& app_support_path, const std::uint8_t user_local_id, const ItemId& id)
 {
-    return std::filesystem::path(app_support_path) / user_id / "files" / std::string(1, id.at(0)) / std::string(1, id.at(1)) / id / "original";
+    std::string id_string = id.to_string();
+    return std::filesystem::path(app_support_path) / std::to_string(user_local_id) / "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "original";
 }
 
-std::filesystem::path item_thumbnail_path(const std::string& app_support_path, const std::string& user_id, const std::string& id)
+std::filesystem::path item_thumbnail_path(const std::string& app_support_path, const std::uint8_t user_local_id, const ItemId& id)
 {
-    return std::filesystem::path(app_support_path) / user_id/ "files" / std::string(1, id.at(0)) / std::string(1, id.at(1)) / id / "thumbnail.jpg";
+    std::string id_string = id.to_string();
+    return std::filesystem::path(app_support_path) / std::to_string(user_local_id)/ "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "thumbnail.jpg";
 }
 
 std::int16_t app_scope_from_vector(const std::vector<std::string>& data)
@@ -197,12 +315,12 @@ std::vector<std::string> app_scope_to_vector(std::int16_t app_scope)
 
 void sqlite_bind_item(sqlite3_stmt* stmt, const Item& item)
 {
-     sqlite3_bind_text(stmt, 1, item.id.c_str(), -1, SQLITE_TRANSIENT);
+    auto id_bytes = item.id.to_bytes();
+     sqlite3_bind_blob(stmt, 1, &id_bytes, sizeof(id_bytes), SQLITE_TRANSIENT);
 
     sqlite3_bind_text(stmt, 2, item_type::to_c_str(item.type), -1, SQLITE_TRANSIENT);
 
     sqlite3_bind_int64(stmt, 3, item.created_at);
-
 
     sqlite3_bind_int64(stmt, 4, item.updated_at);
 
@@ -220,7 +338,8 @@ void sqlite_bind_item(sqlite3_stmt* stmt, const Item& item)
 
 
     if (item.parent_id != special_folder::HOME && item.parent_id != special_folder::TRASH) {
-        sqlite3_bind_text(stmt, 7, item.parent_id.c_str(), -1, SQLITE_TRANSIENT);
+        auto parent_id_bytes = item.parent_id.to_bytes();
+        sqlite3_bind_blob(stmt, 7, &parent_id_bytes, sizeof(parent_id_bytes), SQLITE_TRANSIENT);
     } else {
         sqlite3_bind_null(stmt, 7);
     }
@@ -263,7 +382,9 @@ Item item_from_stmt(sqlite3_stmt* stmt)
         }
         return sqlite3_column_int64(stmt, col);
     };
-    item.id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+    const void* id_bytes = sqlite3_column_blob(stmt, 0);
+    item.id = ItemId::from_bytes(id_bytes);
+
     const char* type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
     item.type = item_type::parse(type);
     item.created_at = sqlite3_column_int64(stmt, 2);
@@ -271,13 +392,31 @@ Item item_from_stmt(sqlite3_stmt* stmt)
 
     item.event_at    = get_int64_column(stmt, 4);
     item.deleted_at  = get_int64_column(stmt, 5);
+
+
     if (item.deleted_at.has_value())
     {
-        item.parent_id = sqlite_utils::get_string(stmt, 6, special_folder::TRASH);
+        if (sqlite3_column_type(stmt, 6) == SQLITE_BLOB)
+        {
+            const void* parent_id_bytes = sqlite3_column_blob(stmt, 6);
+            item.parent_id = ItemId::from_bytes(parent_id_bytes);
+        }
+        else
+        {
+            item.parent_id = special_folder::TRASH;
+        }
     }
     else
     {
-        item.parent_id   = sqlite_utils::get_string(stmt, 6, special_folder::HOME);
+        if (sqlite3_column_type(stmt, 6) == SQLITE_BLOB)
+        {
+            const void* parent_id_bytes = sqlite3_column_blob(stmt, 6);
+            item.parent_id = ItemId::from_bytes(parent_id_bytes);
+        }
+        else
+        {
+            item.parent_id = special_folder::HOME;
+        }
     }
 
     item.name        = get_text_column(stmt, 7);
@@ -305,7 +444,15 @@ Item item_from_json(const nlohmann::json& json)
 {
     Item item;
 
-    item.id = json.value("id", special_folder::HOME);
+    if (auto it = json.find("id"); it != json.end() && it->is_string())
+    {
+        item.id = ItemId::from_string(it->get<std::string>());
+    }
+    else
+    {
+        item.id = special_folder::HOME;
+    }
+    item.id = ItemId::from_string(json_utils::get_string(json, "id"));
 
     std::string type = json_utils::get_string(json, "type");
     item.type = item_type::parse(type);
@@ -329,13 +476,20 @@ Item item_from_json(const nlohmann::json& json)
         item.deleted_at = parse_iso8601_to_ms(it->get<std::string>());
     }
 
-    if (item.deleted_at.has_value())
+    if (auto it = json.find("parent_id"); it != json.end() && it->is_string())
     {
-        item.parent_id = json_utils::get_string(json, "parent_id", special_folder::TRASH);
+        item.parent_id = ItemId::from_string(it->get<std::string>());
     }
     else
     {
-        item.parent_id = json_utils::get_string(json, "parent_id", special_folder::HOME);
+        if (item.deleted_at.has_value())
+        {
+            item.parent_id = special_folder::TRASH;
+        }
+        else
+        {
+            item.parent_id = special_folder::HOME;
+        }
     }
 
     item.name = json_utils::get_string(json, "name");
