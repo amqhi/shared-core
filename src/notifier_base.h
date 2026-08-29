@@ -4,6 +4,7 @@
 #include <string>
 #include "json.hpp"
 
+// TODO: standardize event code values and naming
 constexpr std::int16_t REGISTER_SUCCESS        = 1000;
 constexpr std::int16_t REGISTER_FAILURE        = 1001;
 constexpr std::int16_t LOGIN_SUCCESS           = 1002;
@@ -13,12 +14,14 @@ constexpr std::int16_t RE_LOGIN_REQUIRED       = 4;
 constexpr std::int16_t LOGOUT_SUCCESS          = 5;
 constexpr std::int16_t LOGOUT_FAILURE          = 6;
 constexpr std::int16_t USER_SWITCHED = 1100;
-constexpr std::int16_t ITEMS_FETCH_SUCCESS           = 7;
-constexpr std::int16_t ITEMS_FETCH_FAILURE           = 27;
+constexpr std::int16_t REFRESH_SUCCESS           = 7;
+constexpr std::int16_t REFRESH_FAILURE           = 27;
 constexpr std::int16_t ITEM_CREATE_SUCCESS     = 8;
 constexpr std::int16_t ITEM_CREATE_FAILURE     = 9;
 constexpr std::int16_t ITEM_UPDATE_SUCCESS            = 10;
 constexpr std::int16_t ITEM_UPDATE_FAILURE     = 11;
+constexpr std::int16_t ITEM_SOFT_DELETE_SUCCESS            = 13242;
+constexpr std::int16_t ITEM_SOFT_DELETE_FAILURE     = 11343;
 constexpr std::int16_t ITEM_RESTORE_SUCCESS            = 1077;
 constexpr std::int16_t ITEM_RESTORE_FAILURE     = 1177;
 constexpr std::int16_t ITEM_DELETED            = 12;
