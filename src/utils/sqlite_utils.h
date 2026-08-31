@@ -34,7 +34,7 @@ int nByte,              /* Maximum length of zSql in bytes. */
 const char **pzTail     /* OUT: Pointer to unused portion of zSql */
 )
     {
-        return sqlite3_prepare_v2(db, zSql, nByte, &stmt, nullptr);
+        return sqlite3_prepare_v2(db, zSql, nByte, &stmt, pzTail);
     }
 
     int prepare(sqlite3 *db, const char *zSql)
