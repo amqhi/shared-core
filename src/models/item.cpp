@@ -278,12 +278,12 @@ std::int16_t app_scope_from_vector(const std::vector<std::string>& data)
 {
     std::int16_t app_scope = 0;
     for (const auto& scope : data) {
-        if (scope == "cloud") app_scope |= 1;
-        else if (scope == "notes") app_scope |= 2;
-        else if (scope == "music") app_scope |= 4;
-        else if (scope == "photos") app_scope |= 8;
-        else if (scope == "web") app_scope |= 16;
-        else if (scope == "ai") app_scope |= 32;
+        if (scope == "cloud") app_scope |= app_type::CLOUD;
+        else if (scope == "notes") app_scope |= app_type::NOTES;
+        else if (scope == "music") app_scope |= app_type::MUSIC;
+        else if (scope == "photos") app_scope |= app_type::PHOTOS;
+        else if (scope == "web") app_scope |= app_type::WEB;
+        else if (scope == "ai") app_scope |= app_type::AI;
     }
     return app_scope;
 }
@@ -292,12 +292,12 @@ std::int16_t app_scope_from_json(const nlohmann::json& json)
 {
     std::int16_t app_scope = 0;
     for (const auto& scope : json) {
-        if (scope == "cloud") app_scope |= 1;
-        else if (scope == "notes") app_scope |= 2;
-        else if (scope == "music") app_scope |= 4;
-        else if (scope == "photos") app_scope |= 8;
-        else if (scope == "web") app_scope |= 16;
-        else if (scope == "ai") app_scope |= 32;
+        if (scope == "cloud") app_scope |= app_type::CLOUD;
+        else if (scope == "notes") app_scope |= app_type::NOTES;
+        else if (scope == "music") app_scope |= app_type::MUSIC;
+        else if (scope == "photos") app_scope |= app_type::PHOTOS;
+        else if (scope == "web") app_scope |= app_type::WEB;
+        else if (scope == "ai") app_scope |= app_type::AI;
     }
     return app_scope;
 }
@@ -307,12 +307,12 @@ std::vector<std::string> app_scope_to_vector(std::int16_t app_scope)
     std::vector<std::string> scopes;
     scopes.reserve(6);
 
-    if (app_scope & (1 << 0)) scopes.emplace_back("cloud");  // 1
-    if (app_scope & (1 << 1)) scopes.emplace_back("notes");  // 2
-    if (app_scope & (1 << 2)) scopes.emplace_back("music");  // 4
-    if (app_scope & (1 << 3)) scopes.emplace_back("photos"); // 8
-    if (app_scope & (1 << 4)) scopes.emplace_back("web");    // 16
-    if (app_scope & (1 << 5)) scopes.emplace_back("ai");     // 32
+    if (app_scope & app_type::CLOUD) scopes.emplace_back("cloud");
+    if (app_scope & app_type::NOTES) scopes.emplace_back("notes");
+    if (app_scope & app_type::MUSIC) scopes.emplace_back("music");
+    if (app_scope & app_type::PHOTOS) scopes.emplace_back("photos");
+    if (app_scope & app_type::WEB) scopes.emplace_back("web");
+    if (app_scope & app_type::AI) scopes.emplace_back("ai");
 
     return scopes;
 }
@@ -512,12 +512,12 @@ Item item_from_json(const nlohmann::json& json)
     item.app_scope = 0;
     if (json.contains("app_scope") && json["app_scope"].is_array()) {
         for (const auto& scope : json["app_scope"]) {
-            if (scope == "cloud") item.app_scope |= 1;
-            else if (scope == "notes") item.app_scope |= 2;
-            else if (scope == "music") item.app_scope |= 4;
-            else if (scope == "photos") item.app_scope |= 8;
-            else if (scope == "web") item.app_scope |= 16;
-            else if (scope == "ai") item.app_scope |= 32;
+            if (scope == "cloud") item.app_scope |= app_type::CLOUD;
+            else if (scope == "notes") item.app_scope |= app_type::NOTES;
+            else if (scope == "music") item.app_scope |= app_type::MUSIC;
+            else if (scope == "photos") item.app_scope |= app_type::PHOTOS;
+            else if (scope == "web") item.app_scope |= app_type::WEB;
+            else if (scope == "ai") item.app_scope |= app_type::AI;
         }
     }
 

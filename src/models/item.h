@@ -95,6 +95,15 @@ namespace special_folder
     constexpr ItemId UNKNOWN = {0x0000000000000000ULL, 0x0000000000000000ULL};
 }
 
+namespace app_type
+{
+    constexpr std::int8_t CLOUD = 1;
+    constexpr std::int8_t NOTES = 2;
+    constexpr std::int8_t MUSIC = 4;
+    constexpr std::int8_t PHOTOS = 8;
+    constexpr std::int8_t WEB = 16;
+    constexpr std::int8_t AI = 32;
+}
 
 struct Item {
     std::string name;
