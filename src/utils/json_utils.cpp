@@ -73,3 +73,17 @@ std::int8_t json_utils::get_int8_t(const nlohmann::json& j, const std::string& k
 {
     return get_int8_t(j, key, -1);
 }
+
+bool json_utils::get_bool(const nlohmann::json& j, const std::string& key, bool fallback)
+{
+    if (auto it = j.find(key); it != j.end() && it->is_boolean())
+    {
+        return it->get<bool>();
+    }
+    return fallback;
+}
+
+bool json_utils::get_bool(const nlohmann::json& j, const std::string& key)
+{
+    return get_bool(j, key, false);
+}

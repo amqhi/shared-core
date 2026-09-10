@@ -39,6 +39,9 @@ namespace json_utils
 
     std::int8_t get_int8_t(const nlohmann::json& j, const std::string& key, std::int8_t fallback);
     std::int8_t get_int8_t(const nlohmann::json& j, const std::string& key);
+
+    bool get_bool(const nlohmann::json& j, const std::string& key, bool fallback);
+    bool get_bool(const nlohmann::json& j, const std::string& key);
 }
 
 #endif //SHARED_JSON_UTILS_H
