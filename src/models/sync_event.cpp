@@ -17,14 +17,3 @@ SyncEventType string_to_sync_event_type(std::string_view str)
 
     return SyncEventType::UNKNOWN;
 }
-
-SyncEvent sync_event_from_json(const nlohmann::json& json)
-{
-    SyncEvent event;
-    event.id = json_utils::get_string(json, "id");
-    event.item_id = json_utils::get_string(json, "item_id");
-    std::string occurred_at_raw = json_utils::get_string(json, "occurred_at");
-    event.occurred_at = parse_iso8601_to_ms(occurred_at_raw);
-    event.type = string_to_sync_event_type(json_utils::get_string(json, "type"));
-    return event;
-}

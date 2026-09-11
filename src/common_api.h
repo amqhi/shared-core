@@ -18,7 +18,7 @@ namespace api
     {
         void get_sync_events(const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response,
                                 const OnFailure& on_failure);
-        void consume_event(const std::string& event_id, const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure);
+        void acknowledge_events(const std::vector<std::string>& item_ids, const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure);
     }
 
     namespace items

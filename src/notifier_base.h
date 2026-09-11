@@ -46,8 +46,10 @@ constexpr std::int16_t UPLOAD_PROGRESS        = 28;
 constexpr std::int16_t FETCH_FILE_DOWNLOAD_URL_SUCCESS  = 29;
 constexpr std::int16_t FETCH_FILE_DOWNLOAD_URL_FAILURE  = 30;
 constexpr std::int16_t NETWORK_CONNECTION_FAILURE = 31;
-constexpr std::int16_t SYNC_EVENTS_FETCH_SUCCESS = 32;
-constexpr std::int16_t SYNC_EVENTS_FETCH_FAILURE = 33;
+constexpr std::int16_t SYNC_STARTED = 32;
+constexpr std::int16_t SYNC_SUCCESS = 33;
+constexpr std::int16_t SYNC_EVENTS_FETCH_FAILURE = 34;
+constexpr std::int16_t ACKNOWLEDGE_SYNC_EVENTS_FETCH_FAILURE = 36;
 
 class INotifierBase
 {

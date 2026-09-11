@@ -19,14 +19,16 @@ void api::sync::get_sync_events(const std::string& instance_url, const std::stri
                               on_response, on_failure);
 }
 
-void api::sync::consume_event(const std::string& event_id, const std::string& instance_url,
+void api::sync::acknowledge_events(const std::vector<std::string>& item_ids, const std::string& instance_url,
     const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response,
     const OnFailure& on_failure)
 {
-    std::string url = instance_url + "/sync/events/" + event_id + "/consume";
+    std::string url = instance_url + "/sync/events/acknowledge";
     std::map<std::string, std::string> headers;
     headers["Authorization"] = "Bearer " + access_token;
-    network_provider_base.post(url, headers, on_response, on_failure);
+    nlohmann::json body;
+    body["item_ids"] = item_ids;
+    network_provider_base.post_json(url, headers, body, on_response, on_failure);
 }
 
 void api::items::get_item(const std::string& id, const std::string& instance_url, const std::string& access_token,
