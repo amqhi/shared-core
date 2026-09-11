@@ -4,6 +4,8 @@
 
 #include "file_metadata.h"
 
+#include "json_utils.h"
+
 void cache_file_metadata(sqlite3* db, const FileMetadata& metadata)
 {
     if (db == nullptr) {
@@ -65,6 +67,17 @@ FileMetadata file_metadata_from_stmt(sqlite3_stmt* stmt)
     file_metadata.checksum = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
     file_metadata.size = sqlite3_column_int64(stmt, 2);
     file_metadata.mime_type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+
+    return file_metadata;
+}
+
+FileMetadata file_metadata_from_json(const nlohmann::json& json)
+{
+    FileMetadata file_metadata;
+    file_metadata.id = ItemId::from_string(json_utils::get_string(json, "id"));
+    file_metadata.checksum = json_utils::get_string(json, "checksum");
+    file_metadata.size = json_utils::get_int<std::uint64_t>(json, "size");
+    file_metadata.mime_type = json_utils::get_string(json, "mime_type");
 
     return file_metadata;
 }
