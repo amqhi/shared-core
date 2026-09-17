@@ -41,3 +41,25 @@ void api::items::get_item(const std::string& id, const std::string& instance_url
                               headers,
                               on_response, on_failure);
 }
+
+void api::files::get_files(const std::string& instance_url, const std::string& access_token,
+    INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure)
+{
+    std::string url = instance_url + "/files";
+    std::map<std::string, std::string> headers;
+    headers["Authorization"] = "Bearer " + access_token;
+    network_provider_base.get(url,
+                              headers,
+                              on_response, on_failure);
+}
+
+void api::folders::get_folders(const std::string& instance_url, const std::string& access_token,
+    INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure)
+{
+    std::string url = instance_url + "/folders";
+    std::map<std::string, std::string> headers;
+    headers["Authorization"] = "Bearer " + access_token;
+    network_provider_base.get(url,
+                              headers,
+                              on_response, on_failure);
+}

@@ -26,6 +26,16 @@ namespace api
         void get_item(const std::string& id, const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response,
                                 const OnFailure& on_failure);
     }
+
+    namespace files
+    {
+        void get_files(const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure);
+    }
+
+    namespace folders
+    {
+        void get_folders(const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure);
+    }
 }
 
 #endif //SHARED_COMMON_API_H
