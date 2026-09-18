@@ -32,8 +32,6 @@ struct User {
 void get_user_data(const std::string& app_support_path, User &user);
 void save_user_data(const std::string& app_support_path, User &user);
 
-inline constexpr char SAFE_CHARS[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-
 char created_user_local_id(const std::vector<User>& users);
 
 #endif //SHARED_USER_H
