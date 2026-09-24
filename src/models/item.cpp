@@ -13,30 +13,30 @@
 
 struct User;
 
-std::string item_type::to_string(std::int8_t type)
+std::string item_type::to_string(char type)
 {
     switch (type)
     {
     case NOTE:
         return "note";
-        case FOLDER:
+    case FOLDER:
         return "folder";
-        case SONG:
+    case SONG:
         return "song";
     case ALBUM:
         return "album";
-        case ARTIST:
+    case ARTIST:
         return "artist";
     case ALIAS:
         return "alias";
     case PHOTO:
         return "photo";
-        default:
+    default:
         return "unknown";
     }
 }
 
-const char* item_type::to_c_str(std::int8_t type)
+const char* item_type::to_c_str(char type)
 {
     switch (type)
     {
@@ -61,7 +61,7 @@ const char* item_type::to_c_str(std::int8_t type)
     }
 }
 
-std::int8_t item_type::parse(std::string_view type)
+char item_type::parse(std::string_view type)
 {
     if (type == "note")
     {
@@ -112,7 +112,8 @@ ItemId ItemId::from_bytes(const void* blob_data) noexcept
 
 ItemId ItemId::from_string(std::string_view str) noexcept
 {
-    if (str.size() != 36 && str.size() != 32) {
+    if (str.size() != 36 && str.size() != 32)
+    {
         return special_folder::UNKNOWN;
     }
 
@@ -120,28 +121,37 @@ ItemId ItemId::from_string(std::string_view str) noexcept
     uint64_t low = 0;
     size_t hex_count = 0;
 
-    for (char c : str) {
-        if (c == '-') {
+    for (char c : str)
+    {
+        if (c == '-')
+        {
             continue;
         }
 
         const std::int8_t nibble = hex_char_to_nibble(c);
-        if (nibble < 0) {
+        if (nibble < 0)
+        {
             return special_folder::UNKNOWN;
         }
 
-        if (hex_count < 16) {
+        if (hex_count < 16)
+        {
             high = (high << 4) | static_cast<uint64_t>(nibble);
-        } else if (hex_count < 32) {
+        }
+        else if (hex_count < 32)
+        {
             low = (low << 4) | static_cast<uint64_t>(nibble);
-        } else {
+        }
+        else
+        {
             return special_folder::UNKNOWN;
         }
 
         ++hex_count;
     }
 
-    if (hex_count != 32) {
+    if (hex_count != 32)
+    {
         return special_folder::UNKNOWN;
     }
 
@@ -150,7 +160,8 @@ ItemId ItemId::from_string(std::string_view str) noexcept
 #if __cplusplus >= 202002L
 std::strong_ordering ItemId::operator<=>(const ItemId& other) const
 {
-    if (auto cmp = this->high <=> other.high; cmp != 0) {
+    if (auto cmp = this->high <=> other.high; cmp != 0)
+    {
         return cmp;
     }
     return this->low <=> other.low;
@@ -194,8 +205,10 @@ bool ItemId::operator==(const ItemId& other) const
 
 
     size_t char_idx = 0;
-    for (int i = 60; i >= 0; i -= 4) {
-        if (char_idx == 8 || char_idx == 13) {
+    for (int i = 60; i >= 0; i -= 4)
+    {
+        if (char_idx == 8 || char_idx == 13)
+        {
             ++char_idx;
         }
         uint8_t nibble = (high >> i) & 0x0F;
@@ -204,8 +217,10 @@ bool ItemId::operator==(const ItemId& other) const
 
 
     ++char_idx;
-    for (int i = 60; i >= 0; i -= 4) {
-        if (char_idx == 23) {
+    for (int i = 60; i >= 0; i -= 4)
+    {
+        if (char_idx == 23)
+        {
             ++char_idx;
         }
         uint8_t nibble = (low >> i) & 0x0F;
@@ -217,35 +232,39 @@ bool ItemId::operator==(const ItemId& other) const
 
 void Item::save(sqlite3* db) const
 {
-    if (db == nullptr) {
+    if (db == nullptr)
+    {
         return;
     }
 
-    const char* sql = "INSERT OR REPLACE INTO items (id, type, created_at, updated_at, event_at, deleted_at, parent_id, name, tags, comment, encrypted, app_scope) "
-                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+    const char* sql =
+        "INSERT OR REPLACE INTO items (id, type, created_at, updated_at, event_at, deleted_at, parent_id, name, comment, icon_type, encrypted, app_scope) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
         return;
     }
 
     sqlite_bind_item(stmt, *this);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
-
 }
 
 void item_delete_on_local(const std::string& app_support_path, char user_local_id, sqlite3* db, const ItemId& item_id)
 {
-    if (db == nullptr) {
+    if (db == nullptr)
+    {
         return;
     }
-    
+
     sqlite3_stmt* stmt = nullptr;
     const char* sql = "DELETE FROM items WHERE id = ?;";
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
         return;
     }
     sqlite3_bind_blob(stmt, 1, &item_id, sizeof(item_id), SQLITE_TRANSIENT);
@@ -253,31 +272,35 @@ void item_delete_on_local(const std::string& app_support_path, char user_local_i
     sqlite3_finalize(stmt);
 
     std::filesystem::remove(item_local_directory_path(app_support_path, user_local_id, item_id));
-
 }
 
-std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_local_id, const ItemId& id)
+std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_local_id,
+                                                const ItemId& id)
 {
     std::string id_string = id.to_string();
-    return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string;
+    return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" /
+        std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string;
 }
 
 std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_local_id, const ItemId& id)
 {
     std::string id_string = id.to_string();
-    return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "original";
+    return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" /
+        std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "original";
 }
 
 std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_local_id, const ItemId& id)
 {
     std::string id_string = id.to_string();
-    return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1)/ "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "thumbnail.jpg";
+    return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" /
+        std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "thumbnail.jpg";
 }
 
 std::int16_t app_scope_from_vector(const std::vector<std::string>& data)
 {
     std::int16_t app_scope = 0;
-    for (const auto& scope : data) {
+    for (const auto& scope : data)
+    {
         if (scope == "cloud") app_scope |= app_type::CLOUD;
         else if (scope == "notes") app_scope |= app_type::NOTES;
         else if (scope == "music") app_scope |= app_type::MUSIC;
@@ -291,7 +314,8 @@ std::int16_t app_scope_from_vector(const std::vector<std::string>& data)
 std::int16_t app_scope_from_json(const nlohmann::json& json)
 {
     std::int16_t app_scope = 0;
-    for (const auto& scope : json) {
+    for (const auto& scope : json)
+    {
         if (scope == "cloud") app_scope |= app_type::CLOUD;
         else if (scope == "notes") app_scope |= app_type::NOTES;
         else if (scope == "music") app_scope |= app_type::MUSIC;
@@ -320,46 +344,57 @@ std::vector<std::string> app_scope_to_vector(std::int16_t app_scope)
 void sqlite_bind_item(sqlite3_stmt* stmt, const Item& item)
 {
     auto id_bytes = item.id.to_bytes();
-     sqlite3_bind_blob(stmt, item_column_index::bind::ID, &id_bytes, sizeof(id_bytes), SQLITE_TRANSIENT);
+    sqlite3_bind_blob(stmt, item_column_index::bind::ID, &id_bytes, sizeof(id_bytes), SQLITE_TRANSIENT);
 
-    sqlite3_bind_text(stmt, item_column_index::bind::TYPE, item_type::to_c_str(item.type), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, item_column_index::bind::TYPE, item.type);
 
     sqlite3_bind_int64(stmt, item_column_index::bind::CREATED_AT, item.created_at);
 
     sqlite3_bind_int64(stmt, item_column_index::bind::UPDATED_AT, item.updated_at);
 
-    if (item.event_at.has_value()) {
+    if (item.event_at.has_value())
+    {
         sqlite3_bind_int64(stmt, item_column_index::bind::EVENT_AT, item.event_at.value());
-    } else {
+    }
+    else
+    {
         sqlite3_bind_null(stmt, item_column_index::bind::EVENT_AT);
     }
 
-    if (item.deleted_at.has_value()) {
+    if (item.deleted_at.has_value())
+    {
         sqlite3_bind_int64(stmt, item_column_index::bind::DELETED_AT, item.deleted_at.value());
-    } else {
+    }
+    else
+    {
         sqlite3_bind_null(stmt, item_column_index::bind::DELETED_AT);
     }
 
 
-    if (item.parent_id != special_folder::HOME && item.parent_id != special_folder::TRASH) {
+    if (item.parent_id != special_folder::HOME && item.parent_id != special_folder::TRASH)
+    {
         auto parent_id_bytes = item.parent_id.to_bytes();
-        sqlite3_bind_blob(stmt, item_column_index::bind::PARENT_ID, &parent_id_bytes, sizeof(parent_id_bytes), SQLITE_TRANSIENT);
-    } else {
+        sqlite3_bind_blob(stmt, item_column_index::bind::PARENT_ID, &parent_id_bytes, sizeof(parent_id_bytes),
+                          SQLITE_TRANSIENT);
+    }
+    else
+    {
         sqlite3_bind_null(stmt, item_column_index::bind::PARENT_ID);
     }
 
 
-    if (!item.name.empty()) {
-        sqlite3_bind_text(stmt, item_column_index::bind::NAME, item.name.c_str(), -1, SQLITE_TRANSIENT);
-    } else {
-        sqlite3_bind_null(stmt, item_column_index::bind::NAME);
-    }
+    sqlite3_bind_text(stmt, item_column_index::bind::NAME, item.name.c_str(), -1, SQLITE_TRANSIENT);
 
-    if (item.comment.has_value()) {
+    if (item.comment.has_value())
+    {
         sqlite3_bind_text(stmt, item_column_index::bind::COMMENT, item.comment.value().c_str(), -1, SQLITE_TRANSIENT);
-    } else {
+    }
+    else
+    {
         sqlite3_bind_null(stmt, item_column_index::bind::COMMENT);
     }
+
+    sqlite3_bind_int(stmt, item_column_index::bind::ICON_TYPE, item.icon_type);
 
     sqlite3_bind_int(stmt, item_column_index::bind::ENCRYPTED, item.encrypted ? 1 : 0);
 
@@ -370,16 +405,10 @@ Item item_from_stmt(sqlite3_stmt* stmt)
 {
     Item item;
 
-    auto get_text_column = [](sqlite3_stmt* stmt, int col) -> std::string {
-        if (sqlite3_column_type(stmt, col) == SQLITE_NULL) {
-            return "";
-        }
-        const char* text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, col));
-        return text ? text : "";
-    };
-
-    auto get_int64_column = [](sqlite3_stmt* stmt, int col) -> std::optional<long long> {
-        if (sqlite3_column_type(stmt, col) == SQLITE_NULL) {
+    auto get_int64_column = [](sqlite3_stmt* stmt, int col) -> std::optional<long long>
+    {
+        if (sqlite3_column_type(stmt, col) == SQLITE_NULL)
+        {
             return std::nullopt;
         }
         return sqlite3_column_int64(stmt, col);
@@ -387,13 +416,12 @@ Item item_from_stmt(sqlite3_stmt* stmt)
     const void* id_bytes = sqlite3_column_blob(stmt, item_column_index::ID);
     item.id = ItemId::from_bytes(id_bytes);
 
-    const char* type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, item_column_index::TYPE));
-    item.type = item_type::parse(type);
+    item.type = static_cast<char>(sqlite3_column_int(stmt, item_column_index::TYPE));
     item.created_at = sqlite3_column_int64(stmt, item_column_index::CREATED_AT);
     item.updated_at = sqlite3_column_int64(stmt, item_column_index::UPDATED_AT);
 
-    item.event_at    = get_int64_column(stmt, item_column_index::EVENT_AT);
-    item.deleted_at  = get_int64_column(stmt, item_column_index::DELETED_AT);
+    item.event_at = get_int64_column(stmt, item_column_index::EVENT_AT);
+    item.deleted_at = get_int64_column(stmt, item_column_index::DELETED_AT);
 
 
     if (item.deleted_at.has_value())
@@ -421,8 +449,8 @@ Item item_from_stmt(sqlite3_stmt* stmt)
         }
     }
 
-    item.name        = get_text_column(stmt, item_column_index::NAME);
-    item.comment     = sqlite_utils::get_string(stmt, item_column_index::COMMENT);
+    item.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, item_column_index::NAME));
+    item.comment = sqlite_utils::get_string(stmt, item_column_index::COMMENT);
 
     item.encrypted = (sqlite3_column_int(stmt, item_column_index::ENCRYPTED) != 0);
     item.app_scope = static_cast<int16_t>(sqlite3_column_int(stmt, item_column_index::APP_SCOPE));
@@ -431,11 +459,16 @@ Item item_from_stmt(sqlite3_stmt* stmt)
     return item;
 }
 
-inline std::string parse_nullable_string(const nlohmann::json& json, const std::string& key) {
-    if (json.contains(key) && !json.at(key).is_null()) {
-        if (json.at(key).is_string()) {
+inline std::string parse_nullable_string(const nlohmann::json& json, const std::string& key)
+{
+    if (json.contains(key) && !json.at(key).is_null())
+    {
+        if (json.at(key).is_string())
+        {
             return json.at(key).get<std::string>();
-        } else {
+        }
+        else
+        {
             return json.at(key).dump();
         }
     }
@@ -501,15 +534,20 @@ Item item_from_json(const nlohmann::json& json)
         item.comment = parse_nullable_string(json, it->get<std::string>());
     }
 
-    if (json.contains("encrypted") && json["encrypted"].is_boolean()) {
+    if (json.contains("encrypted") && json["encrypted"].is_boolean())
+    {
         item.encrypted = json["encrypted"].get<bool>();
-    } else {
+    }
+    else
+    {
         item.encrypted = false;
     }
 
     item.app_scope = 0;
-    if (json.contains("app_scope") && json["app_scope"].is_array()) {
-        for (const auto& scope : json["app_scope"]) {
+    if (json.contains("app_scope") && json["app_scope"].is_array())
+    {
+        for (const auto& scope : json["app_scope"])
+        {
             if (scope == "cloud") item.app_scope |= app_type::CLOUD;
             else if (scope == "notes") item.app_scope |= app_type::NOTES;
             else if (scope == "music") item.app_scope |= app_type::MUSIC;

@@ -15,19 +15,19 @@ struct User;
 
 namespace item_type
 {
-    constexpr std::int8_t FILE = 0;
-    constexpr std::int8_t FOLDER = 1;
-    constexpr std::int8_t NOTE = 2;
-    constexpr std::int8_t SONG = 3;
-    constexpr std::int8_t ARTIST = 4;
-    constexpr std::int8_t ALBUM = 5;
-    constexpr std::int8_t ALIAS = 6;
-    constexpr std::int8_t PHOTO = 7;
-    constexpr std::int8_t UNKNOWN = 8;
+    constexpr char FILE = 'f';
+    constexpr char FOLDER = 'o';
+    constexpr char NOTE = 'n';
+    constexpr char SONG = 's';
+    constexpr char ARTIST = 'a';
+    constexpr char ALBUM = 'l';
+    constexpr char ALIAS = 'i';
+    constexpr char PHOTO = 'p';
+    constexpr char UNKNOWN = 'u';
 
-    std::string to_string(std::int8_t type);
-    const char* to_c_str(std::int8_t type);
-    std::int8_t parse(std::string_view type);
+    std::string to_string(char type);
+    const char* to_c_str(char type);
+    char parse(std::string_view type);
 }
 
 [[nodiscard]] constexpr std::int8_t hex_char_to_nibble(char c) noexcept {
@@ -105,6 +105,28 @@ namespace app_type
     constexpr std::int8_t AI = 32;
 }
 
+namespace icon_type
+{
+#define DEFINE_ICON_TYPE(name, value, alias_value) constexpr char name = value; \
+    constexpr char name##_ALIAS = alias_value;
+
+    DEFINE_ICON_TYPE(FILE, 'f', 'F')
+    DEFINE_ICON_TYPE(FOLDER, 'o', 'O')
+    DEFINE_ICON_TYPE(STYLED_FOLDER, 'o', 'O')
+    DEFINE_ICON_TYPE(TEXT_FILE, 't', 'T')
+    DEFINE_ICON_TYPE(IMAGE, 'i', 'I')
+    DEFINE_ICON_TYPE(VIDEO, 'v', 'V')
+    DEFINE_ICON_TYPE(AUDIO, 'a', 'A')
+    DEFINE_ICON_TYPE(MARKDOWN, 'm', 'M')
+    DEFINE_ICON_TYPE(PDF, 'p', 'P')
+    DEFINE_ICON_TYPE(DOCUMENT, 'd', 'D')
+    DEFINE_ICON_TYPE(ARTIST, 'r', 'R')
+    DEFINE_ICON_TYPE(ALBUM, 'a', 'A')
+    DEFINE_ICON_TYPE(ZIP, 'z', 'Z')
+
+    char parse(int type);
+}
+
 struct Item {
     std::string name;
     std::optional<std::string> comment = std::nullopt;
@@ -120,7 +142,8 @@ struct Item {
        * Default value is 63 (0b111111: all scopes enabled).
        */
     std::int16_t app_scope = 63;
-    std::int8_t type;
+    char type;
+    char icon_type;
     bool encrypted = false;
     bool cached = false;
 
@@ -155,6 +178,7 @@ namespace item_column_index
     constexpr int PARENT_ID = 6;
     constexpr int NAME = 7;
     constexpr int COMMENT = 8;
+    constexpr int ICON_TYPE = 9;
     constexpr int ENCRYPTED = 10;
     constexpr int APP_SCOPE = 11;
     constexpr int CACHED = 12;
@@ -170,6 +194,7 @@ namespace item_column_index
         constexpr int PARENT_ID  = item_column_index::PARENT_ID + 1;
         constexpr int NAME       = item_column_index::NAME + 1;
         constexpr int COMMENT    = item_column_index::COMMENT + 1;
+        constexpr int ICON_TYPE = item_column_index::ICON_TYPE + 1;
         constexpr int ENCRYPTED  = item_column_index::ENCRYPTED + 1;
         constexpr int APP_SCOPE  = item_column_index::APP_SCOPE + 1;
         constexpr int CACHED     = item_column_index::CACHED + 1;
