@@ -320,52 +320,50 @@ std::vector<std::string> app_scope_to_vector(std::int16_t app_scope)
 void sqlite_bind_item(sqlite3_stmt* stmt, const Item& item)
 {
     auto id_bytes = item.id.to_bytes();
-     sqlite3_bind_blob(stmt, 1, &id_bytes, sizeof(id_bytes), SQLITE_TRANSIENT);
+     sqlite3_bind_blob(stmt, item_column_index::bind::ID, &id_bytes, sizeof(id_bytes), SQLITE_TRANSIENT);
 
-    sqlite3_bind_text(stmt, 2, item_type::to_c_str(item.type), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, item_column_index::bind::TYPE, item_type::to_c_str(item.type), -1, SQLITE_TRANSIENT);
 
-    sqlite3_bind_int64(stmt, 3, item.created_at);
+    sqlite3_bind_int64(stmt, item_column_index::bind::CREATED_AT, item.created_at);
 
-    sqlite3_bind_int64(stmt, 4, item.updated_at);
+    sqlite3_bind_int64(stmt, item_column_index::bind::UPDATED_AT, item.updated_at);
 
     if (item.event_at.has_value()) {
-        sqlite3_bind_int64(stmt, 5, item.event_at.value());
+        sqlite3_bind_int64(stmt, item_column_index::bind::EVENT_AT, item.event_at.value());
     } else {
-        sqlite3_bind_null(stmt, 5);
+        sqlite3_bind_null(stmt, item_column_index::bind::EVENT_AT);
     }
 
     if (item.deleted_at.has_value()) {
-        sqlite3_bind_int64(stmt, 6, item.deleted_at.value());
+        sqlite3_bind_int64(stmt, item_column_index::bind::DELETED_AT, item.deleted_at.value());
     } else {
-        sqlite3_bind_null(stmt, 6);
+        sqlite3_bind_null(stmt, item_column_index::bind::DELETED_AT);
     }
 
 
     if (item.parent_id != special_folder::HOME && item.parent_id != special_folder::TRASH) {
         auto parent_id_bytes = item.parent_id.to_bytes();
-        sqlite3_bind_blob(stmt, 7, &parent_id_bytes, sizeof(parent_id_bytes), SQLITE_TRANSIENT);
+        sqlite3_bind_blob(stmt, item_column_index::bind::PARENT_ID, &parent_id_bytes, sizeof(parent_id_bytes), SQLITE_TRANSIENT);
     } else {
-        sqlite3_bind_null(stmt, 7);
+        sqlite3_bind_null(stmt, item_column_index::bind::PARENT_ID);
     }
 
 
     if (!item.name.empty()) {
-        sqlite3_bind_text(stmt, 8, item.name.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, item_column_index::bind::NAME, item.name.c_str(), -1, SQLITE_TRANSIENT);
     } else {
-        sqlite3_bind_null(stmt, 8);
+        sqlite3_bind_null(stmt, item_column_index::bind::NAME);
     }
-
-    sqlite3_bind_null(stmt, 9);
 
     if (item.comment.has_value()) {
-        sqlite3_bind_text(stmt, 10, item.comment.value().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, item_column_index::bind::COMMENT, item.comment.value().c_str(), -1, SQLITE_TRANSIENT);
     } else {
-        sqlite3_bind_null(stmt, 10);
+        sqlite3_bind_null(stmt, item_column_index::bind::COMMENT);
     }
 
-    sqlite3_bind_int(stmt, 11, item.encrypted ? 1 : 0);
+    sqlite3_bind_int(stmt, item_column_index::bind::ENCRYPTED, item.encrypted ? 1 : 0);
 
-    sqlite3_bind_int(stmt, 12, item.app_scope);
+    sqlite3_bind_int(stmt, item_column_index::bind::APP_SCOPE, item.app_scope);
 }
 
 Item item_from_stmt(sqlite3_stmt* stmt)
@@ -386,23 +384,23 @@ Item item_from_stmt(sqlite3_stmt* stmt)
         }
         return sqlite3_column_int64(stmt, col);
     };
-    const void* id_bytes = sqlite3_column_blob(stmt, 0);
+    const void* id_bytes = sqlite3_column_blob(stmt, item_column_index::ID);
     item.id = ItemId::from_bytes(id_bytes);
 
-    const char* type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+    const char* type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, item_column_index::TYPE));
     item.type = item_type::parse(type);
-    item.created_at = sqlite3_column_int64(stmt, 2);
-    item.updated_at = sqlite3_column_int64(stmt, 3);
+    item.created_at = sqlite3_column_int64(stmt, item_column_index::CREATED_AT);
+    item.updated_at = sqlite3_column_int64(stmt, item_column_index::UPDATED_AT);
 
-    item.event_at    = get_int64_column(stmt, 4);
-    item.deleted_at  = get_int64_column(stmt, 5);
+    item.event_at    = get_int64_column(stmt, item_column_index::EVENT_AT);
+    item.deleted_at  = get_int64_column(stmt, item_column_index::DELETED_AT);
 
 
     if (item.deleted_at.has_value())
     {
-        if (sqlite3_column_type(stmt, 6) == SQLITE_BLOB)
+        if (sqlite3_column_type(stmt, item_column_index::PARENT_ID) == SQLITE_BLOB)
         {
-            const void* parent_id_bytes = sqlite3_column_blob(stmt, 6);
+            const void* parent_id_bytes = sqlite3_column_blob(stmt, item_column_index::PARENT_ID);
             item.parent_id = ItemId::from_bytes(parent_id_bytes);
         }
         else
@@ -412,9 +410,9 @@ Item item_from_stmt(sqlite3_stmt* stmt)
     }
     else
     {
-        if (sqlite3_column_type(stmt, 6) == SQLITE_BLOB)
+        if (sqlite3_column_type(stmt, item_column_index::PARENT_ID) == SQLITE_BLOB)
         {
-            const void* parent_id_bytes = sqlite3_column_blob(stmt, 6);
+            const void* parent_id_bytes = sqlite3_column_blob(stmt, item_column_index::PARENT_ID);
             item.parent_id = ItemId::from_bytes(parent_id_bytes);
         }
         else
@@ -423,12 +421,12 @@ Item item_from_stmt(sqlite3_stmt* stmt)
         }
     }
 
-    item.name        = get_text_column(stmt, 7);
-    item.comment     = sqlite_utils::get_string(stmt, 8);
+    item.name        = get_text_column(stmt, item_column_index::NAME);
+    item.comment     = sqlite_utils::get_string(stmt, item_column_index::COMMENT);
 
-    item.encrypted = (sqlite3_column_int(stmt, 10) != 0);
-    item.app_scope = static_cast<int16_t>(sqlite3_column_int(stmt, 11));
-    item.cached = (sqlite3_column_int(stmt, 12) != 0);
+    item.encrypted = (sqlite3_column_int(stmt, item_column_index::ENCRYPTED) != 0);
+    item.app_scope = static_cast<int16_t>(sqlite3_column_int(stmt, item_column_index::APP_SCOPE));
+    item.cached = (sqlite3_column_int(stmt, item_column_index::CACHED) != 0);
 
     return item;
 }

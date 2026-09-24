@@ -144,6 +144,39 @@ std::vector<std::string> app_scope_to_vector(std::int16_t app_scope);
 
 Item item_from_json(const nlohmann::json& json);
 
+namespace item_column_index
+{
+    constexpr int ID = 0;
+    constexpr int TYPE = 1;
+    constexpr int CREATED_AT = 2;
+    constexpr int UPDATED_AT = 3;
+    constexpr int EVENT_AT = 4;
+    constexpr int DELETED_AT = 5;
+    constexpr int PARENT_ID = 6;
+    constexpr int NAME = 7;
+    constexpr int COMMENT = 8;
+    constexpr int ENCRYPTED = 10;
+    constexpr int APP_SCOPE = 11;
+    constexpr int CACHED = 12;
+
+    namespace bind
+    {
+        constexpr int ID         = item_column_index::ID + 1;
+        constexpr int TYPE       = item_column_index::TYPE + 1;
+        constexpr int CREATED_AT = item_column_index::CREATED_AT + 1;
+        constexpr int UPDATED_AT = item_column_index::UPDATED_AT + 1;
+        constexpr int EVENT_AT   = item_column_index::EVENT_AT + 1;
+        constexpr int DELETED_AT = item_column_index::DELETED_AT + 1;
+        constexpr int PARENT_ID  = item_column_index::PARENT_ID + 1;
+        constexpr int NAME       = item_column_index::NAME + 1;
+        constexpr int COMMENT    = item_column_index::COMMENT + 1;
+        constexpr int ENCRYPTED  = item_column_index::ENCRYPTED + 1;
+        constexpr int APP_SCOPE  = item_column_index::APP_SCOPE + 1;
+        constexpr int CACHED     = item_column_index::CACHED + 1;
+    }
+
+}
+
 void sqlite_bind_item(sqlite3_stmt* stmt, const Item& item);
 Item item_from_stmt(sqlite3_stmt* stmt);
 
