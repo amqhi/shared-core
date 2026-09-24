@@ -236,7 +236,7 @@ void Item::save(sqlite3* db) const
 
 }
 
-void item_delete_on_local(const std::string& app_support_path, const std::uint8_t user_local_id, sqlite3* db, const ItemId& item_id)
+void item_delete_on_local(const std::string& app_support_path, char user_local_id, sqlite3* db, const ItemId& item_id)
 {
     if (db == nullptr) {
         return;
@@ -256,22 +256,22 @@ void item_delete_on_local(const std::string& app_support_path, const std::uint8_
 
 }
 
-std::filesystem::path item_local_directory_path(const std::string& app_support_path, const std::uint8_t user_local_id, const ItemId& id)
+std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_local_id, const ItemId& id)
 {
     std::string id_string = id.to_string();
-    return std::filesystem::path(app_support_path) / std::to_string(user_local_id) / "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string;
+    return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string;
 }
 
-std::filesystem::path item_local_file_path(const std::string& app_support_path, const std::uint8_t user_local_id, const ItemId& id)
+std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_local_id, const ItemId& id)
 {
     std::string id_string = id.to_string();
-    return std::filesystem::path(app_support_path) / std::to_string(user_local_id) / "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "original";
+    return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "original";
 }
 
-std::filesystem::path item_thumbnail_path(const std::string& app_support_path, const std::uint8_t user_local_id, const ItemId& id)
+std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_local_id, const ItemId& id)
 {
     std::string id_string = id.to_string();
-    return std::filesystem::path(app_support_path) / std::to_string(user_local_id)/ "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "thumbnail.jpg";
+    return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1)/ "files" / std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "thumbnail.jpg";
 }
 
 std::int16_t app_scope_from_vector(const std::vector<std::string>& data)
