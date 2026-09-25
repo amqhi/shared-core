@@ -9,8 +9,8 @@
 
 struct FolderMetadata
 {
-    ItemId background_id = special_folder::UNKNOWN;
-    ItemId icon_id = special_folder::UNKNOWN;
+    UUID background_id = special_folder::UNKNOWN;
+    UUID icon_id = special_folder::UNKNOWN;
     std::optional<std::uint32_t> background_color = std::nullopt;
     std::optional<std::uint32_t> icon_color = std::nullopt;
 };

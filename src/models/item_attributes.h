@@ -14,7 +14,7 @@
 
 struct ItemAttributes {
     std::string name;
-    ItemId parent_id = special_folder::HOME;
+    UUID parent_id = special_folder::HOME;
     std::optional<std::string> comment = std::nullopt;
     std::optional<std::int64_t> event_at = std::nullopt;
     

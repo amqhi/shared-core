@@ -37,7 +37,7 @@ namespace item_type
     return -1;
 }
 
-struct ItemId
+struct UUID
 {
     std::uint64_t high;
     std::uint64_t low;
@@ -54,31 +54,31 @@ struct ItemId
 
     [[nodiscard]] std::array<std::uint8_t, 16> to_bytes() const noexcept;
 
-    static ItemId from_bytes(const void* blob_data) noexcept;
+    static UUID from_bytes(const void* blob_data) noexcept;
 
-    [[nodiscard]] static ItemId from_string(std::string_view str) noexcept;
+    [[nodiscard]] static UUID from_string(std::string_view str) noexcept;
 
 #if __cplusplus >= 202002L
-    std::strong_ordering operator<=>(const ItemId& other) const;
+    std::strong_ordering operator<=>(const UUID& other) const;
 #else
-    bool operator!=(const ItemId& other) const noexcept;
-    bool operator<(const ItemId& other) const noexcept;
-    bool operator<=(const ItemId& other) const noexcept;
-    bool operator>(const ItemId& other) const noexcept;
-    bool operator>=(const ItemId& other) const noexcept;
+    bool operator!=(const UUID& other) const noexcept;
+    bool operator<(const UUID& other) const noexcept;
+    bool operator<=(const UUID& other) const noexcept;
+    bool operator>(const UUID& other) const noexcept;
+    bool operator>=(const UUID& other) const noexcept;
 
 #endif
-    bool operator==(const ItemId& other) const;
+    bool operator==(const UUID& other) const;
     
     [[nodiscard]] std::string to_string() const;
 };
 
-static_assert(sizeof(ItemId) == 16);
+static_assert(sizeof(UUID) == 16);
 
-// Custom std::hash specialization for ItemId (for std::unordered_map)
+// Custom std::hash specialization for UUID (for std::unordered_map)
 template <>
-struct std::hash<ItemId> {
-    std::size_t operator()(const ItemId& id) const noexcept {
+struct std::hash<UUID> {
+    std::size_t operator()(const UUID& id) const noexcept {
         std::size_t h1 = std::hash<std::uint64_t>{}(id.high);
         std::size_t h2 = std::hash<std::uint64_t>{}(id.low);
         // 0x9e3779b97f4a7c15ULL represents the golden ratio to prevent hash collisions
@@ -90,9 +90,9 @@ struct std::hash<ItemId> {
 // It's not stored directly in the Item's parent_id field.
 namespace special_folder
 {
-    constexpr ItemId HOME    = {0x1111111111111111ULL, 0x1111111111111111ULL};
-    constexpr ItemId TRASH   = {0x1111111111111111ULL, 0x1111111111111112ULL};
-    constexpr ItemId UNKNOWN = {0x0000000000000000ULL, 0x0000000000000000ULL};
+    constexpr UUID HOME    = {0x1111111111111111ULL, 0x1111111111111111ULL};
+    constexpr UUID TRASH   = {0x1111111111111111ULL, 0x1111111111111112ULL};
+    constexpr UUID UNKNOWN = {0x0000000000000000ULL, 0x0000000000000000ULL};
 }
 
 namespace app_type
@@ -130,8 +130,8 @@ namespace icon_type
 struct Item {
     std::string name;
     std::optional<std::string> comment = std::nullopt;
-    ItemId id;
-    ItemId parent_id;
+    UUID id;
+    UUID parent_id;
     std::int64_t created_at = 0;
     std::int64_t updated_at = 0;
     std::optional<std::int64_t> event_at = std::nullopt;
@@ -155,11 +155,11 @@ struct Item {
 };
 
 
-void item_delete_on_local(const std::string& app_support_path, char user_id, sqlite3* db, const ItemId& item_id);
+void item_delete_on_local(const std::string& app_support_path, char user_id, sqlite3* db, const UUID& item_id);
 
-std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_id, const ItemId& id);
-std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_id, const ItemId& id);
-std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_id, const ItemId& id);
+std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_id, const UUID& id);
+std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_id, const UUID& id);
+std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_id, const UUID& id);
 
 std::int16_t app_scope_from_vector(const std::vector<std::string>& app_scope);
 std::int16_t app_scope_from_json(const nlohmann::json& app_scope);

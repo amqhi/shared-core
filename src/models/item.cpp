@@ -94,7 +94,7 @@ char item_type::parse(std::string_view type)
     return UNKNOWN;
 }
 
-std::array<std::uint8_t, 16> ItemId::to_bytes() const noexcept
+std::array<std::uint8_t, 16> UUID::to_bytes() const noexcept
 {
     std::array<std::uint8_t, 16> bytes{};
     std::memcpy(bytes.data(), &high, 8);
@@ -102,15 +102,15 @@ std::array<std::uint8_t, 16> ItemId::to_bytes() const noexcept
     return bytes;
 }
 
-ItemId ItemId::from_bytes(const void* blob_data) noexcept
+UUID UUID::from_bytes(const void* blob_data) noexcept
 {
-    ItemId id{};
+    UUID id{};
     std::memcpy(&id.high, blob_data, 8);
     std::memcpy(&id.low, static_cast<const std::uint8_t*>(blob_data) + 8, 8);
     return id;
 }
 
-ItemId ItemId::from_string(std::string_view str) noexcept
+UUID UUID::from_string(std::string_view str) noexcept
 {
     if (str.size() != 36 && str.size() != 32)
     {
@@ -155,10 +155,10 @@ ItemId ItemId::from_string(std::string_view str) noexcept
         return special_folder::UNKNOWN;
     }
 
-    return ItemId{high, low};
+    return UUID{high, low};
 }
 #if __cplusplus >= 202002L
-std::strong_ordering ItemId::operator<=>(const ItemId& other) const
+std::strong_ordering UUID::operator<=>(const UUID& other) const
 {
     if (auto cmp = this->high <=> other.high; cmp != 0)
     {
@@ -167,37 +167,37 @@ std::strong_ordering ItemId::operator<=>(const ItemId& other) const
     return this->low <=> other.low;
 }
 #else
-bool ItemId::operator!=(const ItemId& other) const noexcept
+bool UUID::operator!=(const UUID& other) const noexcept
 {
     return !(*this == other);
 }
-bool ItemId::operator<(const ItemId& other) const noexcept
+bool UUID::operator<(const UUID& other) const noexcept
 {
     return std::tie(high, low) < std::tie(other.high, other.low);
 }
 
-bool ItemId::operator<=(const ItemId& other) const noexcept
+bool UUID::operator<=(const UUID& other) const noexcept
 {
     return other >= *this;
 }
 
-bool ItemId::operator>(const ItemId& other) const noexcept
+bool UUID::operator>(const UUID& other) const noexcept
 {
     return other < *this;
 }
 
-bool ItemId::operator>=(const ItemId& other) const noexcept
+bool UUID::operator>=(const UUID& other) const noexcept
 {
     return !(*this < other);
 }
 #endif
 
-bool ItemId::operator==(const ItemId& other) const
+bool UUID::operator==(const UUID& other) const
 {
     return this->high == other.high && this->low == other.low;
 }
 
-[[nodiscard]] std::string ItemId::to_string() const
+[[nodiscard]] std::string UUID::to_string() const
 {
     std::string result(36, '-');
 
@@ -253,7 +253,7 @@ void Item::save(sqlite3* db) const
     sqlite3_finalize(stmt);
 }
 
-void item_delete_on_local(const std::string& app_support_path, char user_local_id, sqlite3* db, const ItemId& item_id)
+void item_delete_on_local(const std::string& app_support_path, char user_local_id, sqlite3* db, const UUID& item_id)
 {
     if (db == nullptr)
     {
@@ -275,21 +275,21 @@ void item_delete_on_local(const std::string& app_support_path, char user_local_i
 }
 
 std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_local_id,
-                                                const ItemId& id)
+                                                const UUID& id)
 {
     std::string id_string = id.to_string();
     return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" /
         std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string;
 }
 
-std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_local_id, const ItemId& id)
+std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_local_id, const UUID& id)
 {
     std::string id_string = id.to_string();
     return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" /
         std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "original";
 }
 
-std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_local_id, const ItemId& id)
+std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_local_id, const UUID& id)
 {
     std::string id_string = id.to_string();
     return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" /
@@ -414,7 +414,7 @@ Item item_from_stmt(sqlite3_stmt* stmt)
         return sqlite3_column_int64(stmt, col);
     };
     const void* id_bytes = sqlite3_column_blob(stmt, item_column_index::ID);
-    item.id = ItemId::from_bytes(id_bytes);
+    item.id = UUID::from_bytes(id_bytes);
 
     item.type = static_cast<char>(sqlite3_column_int(stmt, item_column_index::TYPE));
     item.created_at = sqlite3_column_int64(stmt, item_column_index::CREATED_AT);
@@ -429,7 +429,7 @@ Item item_from_stmt(sqlite3_stmt* stmt)
         if (sqlite3_column_type(stmt, item_column_index::PARENT_ID) == SQLITE_BLOB)
         {
             const void* parent_id_bytes = sqlite3_column_blob(stmt, item_column_index::PARENT_ID);
-            item.parent_id = ItemId::from_bytes(parent_id_bytes);
+            item.parent_id = UUID::from_bytes(parent_id_bytes);
         }
         else
         {
@@ -441,7 +441,7 @@ Item item_from_stmt(sqlite3_stmt* stmt)
         if (sqlite3_column_type(stmt, item_column_index::PARENT_ID) == SQLITE_BLOB)
         {
             const void* parent_id_bytes = sqlite3_column_blob(stmt, item_column_index::PARENT_ID);
-            item.parent_id = ItemId::from_bytes(parent_id_bytes);
+            item.parent_id = UUID::from_bytes(parent_id_bytes);
         }
         else
         {
@@ -481,13 +481,13 @@ Item item_from_json(const nlohmann::json& json)
 
     if (auto it = json.find("id"); it != json.end() && it->is_string())
     {
-        item.id = ItemId::from_string(it->get<std::string>());
+        item.id = UUID::from_string(it->get<std::string>());
     }
     else
     {
         item.id = special_folder::HOME;
     }
-    item.id = ItemId::from_string(json_utils::get_string(json, "id"));
+    item.id = UUID::from_string(json_utils::get_string(json, "id"));
 
     std::string type = json_utils::get_string(json, "type");
     item.type = item_type::parse(type);
@@ -513,7 +513,7 @@ Item item_from_json(const nlohmann::json& json)
 
     if (auto it = json.find("parent_id"); it != json.end() && it->is_string())
     {
-        item.parent_id = ItemId::from_string(it->get<std::string>());
+        item.parent_id = UUID::from_string(it->get<std::string>());
     }
     else
     {
