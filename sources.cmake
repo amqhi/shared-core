@@ -95,6 +95,8 @@ set(SHARED_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/src/models/file_metadata.h
         ${CMAKE_CURRENT_LIST_DIR}/src/models/folder_metadata.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/models/folder_metadata.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/models/uuid.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/models/uuid.h
 )
 
 set(SHARED_JAVA_BINDING_INCLUDE_DIRS
