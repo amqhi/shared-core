@@ -12,6 +12,9 @@
 #include <filesystem>
 #include "uuid.h"
 
+struct FileMetadata;
+struct FolderMetadata;
+
 struct User;
 
 namespace item_type
@@ -48,7 +51,7 @@ namespace icon_type
 
     DEFINE_ICON_TYPE(FILE, 'f', 'F')
     DEFINE_ICON_TYPE(FOLDER, 'o', 'O')
-    DEFINE_ICON_TYPE(STYLED_FOLDER, 'o', 'O')
+    DEFINE_ICON_TYPE(STYLED_FOLDER, 's', 'S')
     DEFINE_ICON_TYPE(TEXT_FILE, 't', 'T')
     DEFINE_ICON_TYPE(IMAGE, 'i', 'I')
     DEFINE_ICON_TYPE(VIDEO, 'v', 'V')
@@ -88,6 +91,9 @@ struct Item {
     }
 
     void save(sqlite3* db) const;
+
+    void setup_icon_type(const FileMetadata& file_metadata);
+    void setup_icon_type(const FolderMetadata& folder_metadata);
 };
 
 

@@ -8,6 +8,8 @@
 #include <string>
 
 #include "date_time_utils.h"
+#include "file_metadata.h"
+#include "folder_metadata.h"
 #include "json_utils.h"
 #include "sqlite_utils.h"
 
@@ -115,6 +117,47 @@ void Item::save(sqlite3* db) const
     sqlite_bind_item(stmt, *this);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
+}
+
+void Item::setup_icon_type(const FileMetadata& file_metadata)
+{
+    switch (file_metadata.mime_type.size())
+    {
+        // Each case represents length of MIME type
+    case 15:
+        if (file_metadata.mime_type == "application/pdf") {
+            icon_type = icon_type::PDF;
+            break;
+        }
+        icon_type = icon_type::FILE;
+        break;
+    case 18:
+        if (file_metadata.mime_type == "application/msword") {
+            icon_type = icon_type::DOCUMENT;
+            break;
+        }
+        icon_type = icon_type::FILE;
+        break;
+    case 71:
+        if (file_metadata.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+            icon_type = icon_type::DOCUMENT;
+            break;
+        }
+        icon_type = icon_type::FILE;
+    default:
+        icon_type = icon_type::FILE;
+        break;
+    }   
+}
+
+void Item::setup_icon_type(const FolderMetadata& folder_metadata)
+{
+    if (folder_metadata.background_color.has_value() || folder_metadata.icon_color.has_value() || folder_metadata.background_id != special_folder::UNKNOWN || folder_metadata.icon_id != special_folder::UNKNOWN)
+    {
+        icon_type = icon_type::STYLED_FOLDER;
+        return;
+    }
+    icon_type = icon_type::FOLDER;
 }
 
 void item_delete_on_local(const std::string& app_support_path, char user_local_id, sqlite3* db, const UUID& item_id)
