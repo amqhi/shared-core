@@ -84,7 +84,7 @@ struct Item {
     char type;
     char icon_type;
     bool encrypted = false;
-    bool cached = false;
+    char status;
 
     [[nodiscard]] bool is_deleted() const {
         return deleted_at > 0;
@@ -123,7 +123,7 @@ namespace item_column_index
     constexpr int ICON_TYPE = 9;
     constexpr int ENCRYPTED = 10;
     constexpr int APP_SCOPE = 11;
-    constexpr int CACHED = 12;
+    constexpr int STATUS = 12;
 
     namespace bind
     {
@@ -139,9 +139,16 @@ namespace item_column_index
         constexpr int ICON_TYPE = item_column_index::ICON_TYPE + 1;
         constexpr int ENCRYPTED  = item_column_index::ENCRYPTED + 1;
         constexpr int APP_SCOPE  = item_column_index::APP_SCOPE + 1;
-        constexpr int CACHED     = item_column_index::CACHED + 1;
+        constexpr int STATUS  = item_column_index::STATUS + 1;
     }
 
+}
+
+namespace item_status
+{
+    constexpr char DOWNLOADED = 'd';
+    constexpr char ONLINE_ONLY = 'o';
+    constexpr char PENDING_UPLOAD = 'p';
 }
 
 void sqlite_bind_item(sqlite3_stmt* stmt, const Item& item);

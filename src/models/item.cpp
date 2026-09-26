@@ -306,6 +306,8 @@ void sqlite_bind_item(sqlite3_stmt* stmt, const Item& item)
     sqlite3_bind_int(stmt, item_column_index::bind::ENCRYPTED, item.encrypted ? 1 : 0);
 
     sqlite3_bind_int(stmt, item_column_index::bind::APP_SCOPE, item.app_scope);
+
+    sqlite3_bind_int(stmt, item_column_index::bind::STATUS, item.status);
 }
 
 Item item_from_stmt(sqlite3_stmt* stmt)
@@ -361,7 +363,7 @@ Item item_from_stmt(sqlite3_stmt* stmt)
 
     item.encrypted = (sqlite3_column_int(stmt, item_column_index::ENCRYPTED) != 0);
     item.app_scope = static_cast<int16_t>(sqlite3_column_int(stmt, item_column_index::APP_SCOPE));
-    item.cached = (sqlite3_column_int(stmt, item_column_index::CACHED) != 0);
+    item.status = static_cast<char>(sqlite3_column_int(stmt, item_column_index::STATUS));
 
     return item;
 }
