@@ -361,6 +361,7 @@ Item item_from_stmt(sqlite3_stmt* stmt)
     item.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, item_column_index::NAME));
     item.comment = sqlite_utils::get_string(stmt, item_column_index::COMMENT);
 
+    item.icon_type = static_cast<char>(sqlite3_column_int(stmt, item_column_index::ICON_TYPE));
     item.encrypted = (sqlite3_column_int(stmt, item_column_index::ENCRYPTED) != 0);
     item.app_scope = static_cast<int16_t>(sqlite3_column_int(stmt, item_column_index::APP_SCOPE));
     item.status = static_cast<char>(sqlite3_column_int(stmt, item_column_index::STATUS));
