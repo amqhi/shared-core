@@ -60,7 +60,7 @@ namespace icon_type
     DEFINE_ICON_TYPE(PDF, 'p', 'P')
     DEFINE_ICON_TYPE(DOCUMENT, 'd', 'D')
     DEFINE_ICON_TYPE(ARTIST, 'r', 'R')
-    DEFINE_ICON_TYPE(ALBUM, 'a', 'A')
+    DEFINE_ICON_TYPE(ALBUM, 'l', 'L')
     DEFINE_ICON_TYPE(ZIP, 'z', 'Z')
 
     char parse(int type);
