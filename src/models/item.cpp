@@ -121,33 +121,120 @@ void Item::save(sqlite3* db) const
 
 void Item::setup_icon_type(const FileMetadata& file_metadata)
 {
-    switch (file_metadata.mime_type.size())
+    const std::string& mime = file_metadata.mime_type;
+    icon_type = icon_type::FILE;
+
+    if (mime.size() >= 6) {
+        if (mime.compare(0, 6, "image/") == 0) {
+            icon_type = icon_type::IMAGE;
+            return;
+        }
+        if (mime.compare(0, 6, "audio/") == 0) {
+            icon_type = icon_type::AUDIO;
+            return;
+        }
+        if (mime.compare(0, 6, "video/") == 0) {
+            icon_type = icon_type::VIDEO;
+            return;
+        }
+    }
+
+    switch (mime.size())
     {
         // Each case represents length of MIME type
-    case 15:
-        if (file_metadata.mime_type == "application/pdf") {
-            icon_type = icon_type::PDF;
-            break;
+    case 8:
+        if (mime == "text/vtt") {
+            icon_type = icon_type::SUBTITLE;
         }
-        icon_type = icon_type::FILE;
+        break;
+    case 9:
+        if (mime == "text/html") {
+            icon_type = icon_type::WEB;
+        }
+        break;
+    case 10:
+        if (mime == "text/plain") {
+            icon_type = icon_type::TEXT_FILE;
+        }
+        break;
+    case 13:
+        if (mime == "text/markdown") {
+            icon_type = icon_type::MARKDOWN;
+        }
+        break;
+    case 15:
+        if (mime == "application/pdf") {
+            icon_type = icon_type::PDF;
+        } else if (mime == "text/javascript") {
+            icon_type = icon_type::CODE;
+        } else if (mime == "application/zip") {
+            icon_type = icon_type::ARCHIVE;
+        } else if (mime == "application/rtf") {
+            icon_type = icon_type::DOCUMENT;
+        }
+        break;
+    case 16:
+        if (mime == "application/gzip") {
+            icon_type = icon_type::ARCHIVE;
+        }
+        break;
+    case 17:
+        if (mime == "application/x-tar") {
+            icon_type = icon_type::ARCHIVE;
+        }
         break;
     case 18:
-        if (file_metadata.mime_type == "application/msword") {
+        if (mime == "application/msword") {
             icon_type = icon_type::DOCUMENT;
-            break;
+        } else if (mime == "application/x-gzip") {
+            icon_type = icon_type::ARCHIVE;
         }
-        icon_type = icon_type::FILE;
+        break;
+    case 20:
+        if (mime == "application/epub+zip") {
+            icon_type = icon_type::BOOK;
+        }
+        break;
+    case 21:
+        if (mime == "application/font-woff") {
+            icon_type = icon_type::FONT;
+        } else if (mime == "application/x-mpegurl") {
+            icon_type = icon_type::PLAYLIST;
+        }
+        break;
+    case 22:
+        if (mime == "application/javascript") {
+            icon_type = icon_type::CODE;
+        }
+        break;
+    case 24:
+        if (mime == "application/vnd.ms-excel") {
+            icon_type = icon_type::SPREADSHEET;
+        }
+        break;
+    case 29:
+        if (mime == "application/vnd.ms-powerpoint") {
+            icon_type = icon_type::PRESENTATION;
+        }
+        break;
+    case 65:
+        if (mime == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+            icon_type = icon_type::SPREADSHEET;
+        }
         break;
     case 71:
-        if (file_metadata.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        if (mime == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
             icon_type = icon_type::DOCUMENT;
-            break;
         }
-        icon_type = icon_type::FILE;
-    default:
-        icon_type = icon_type::FILE;
         break;
-    }   
+    case 73:
+        if (mime == "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+            icon_type = icon_type::PRESENTATION;
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 void Item::setup_icon_type(const FolderMetadata& folder_metadata)

@@ -61,9 +61,17 @@ namespace icon_type
     DEFINE_ICON_TYPE(DOCUMENT, 'd', 'D')
     DEFINE_ICON_TYPE(ARTIST, 'r', 'R')
     DEFINE_ICON_TYPE(ALBUM, 'l', 'L')
-    DEFINE_ICON_TYPE(ZIP, 'z', 'Z')
-
-    char parse(int type);
+    DEFINE_ICON_TYPE(ARCHIVE, 'h', 'H')
+    DEFINE_ICON_TYPE(CODE, 'c', 'C')
+    DEFINE_ICON_TYPE(WEB, 'w', 'W')
+    DEFINE_ICON_TYPE(PLAYLIST, 'y', 'Y')
+    DEFINE_ICON_TYPE(EXECUTABLE, 'e', 'E')
+    DEFINE_ICON_TYPE(DATABASE, 'b', 'B')
+    DEFINE_ICON_TYPE(BOOK, 'k', 'K')
+    DEFINE_ICON_TYPE(SPREADSHEET, 'x', 'X')
+    DEFINE_ICON_TYPE(PRESENTATION, 'n', 'N')
+    DEFINE_ICON_TYPE(FONT, 'q', 'Q')
+    DEFINE_ICON_TYPE(SUBTITLE, 'u', 'U')
 }
 
 struct Item {
