@@ -7,6 +7,7 @@
 #include <map>
 
 #include "network_provider_base.h"
+#include "uuid.h"
 
 void api::sync::get_sync_events(const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response,
                                 const OnFailure& on_failure)
@@ -42,8 +43,20 @@ void api::items::get_item(const std::string& id, const std::string& instance_url
                               on_response, on_failure);
 }
 
+void api::items::get_thumbnail_download_url(const UUID& item_id, const std::string& instance_url,
+    const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response,
+    const OnFailure& on_failure)
+{
+    std::string url = instance_url + "/items/" + item_id.to_string() + "/thumbnail/download-url";
+    std::map<std::string, std::string> headers;
+    headers["Authorization"] = "Bearer " + access_token;
+    network_provider_base.get(url,
+                                  headers,
+                                  on_response, on_failure);
+}
+
 void api::files::get_files(const std::string& instance_url, const std::string& access_token,
-    INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure)
+                           INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure)
 {
     std::string url = instance_url + "/files";
     std::map<std::string, std::string> headers;
@@ -54,7 +67,7 @@ void api::files::get_files(const std::string& instance_url, const std::string& a
 }
 
 void api::folders::get_folders(const std::string& instance_url, const std::string& access_token,
-    INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure)
+                               INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure)
 {
     std::string url = instance_url + "/folders";
     std::map<std::string, std::string> headers;
