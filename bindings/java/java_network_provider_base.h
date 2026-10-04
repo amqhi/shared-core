@@ -46,7 +46,7 @@ public:
 
     void executeHttp(const char* methodName, const std::string &url, const std::map<std::string, std::string> &headers,
                   const nlohmann::json &body, const std::function<void(int status_code,
-                                                                 const std::string &response)>& on_response,    std::function<void(int error_code, const std::string& data)> on_failure) const
+                                                                 const std::string &response)>& on_response,    std::function<void(std::int16_t error_code, const std::string& data)> on_failure) const
     {
         JNIEnv *env = getEnv();
         jclass clazz = env->GetObjectClass(java_provider_global_);
@@ -75,7 +75,7 @@ public:
     }
 
     void executeHttp(const char* methodName, const std::string &url, const std::map<std::string, std::string> &headers, const std::function<void(int status_code,
-                                                                const std::string &response)>& on_response, std::function<void(int error_code, const std::string& data)> on_failure) const
+                                                                const std::string &response)>& on_response, std::function<void(std::int16_t error_code, const std::string& data)> on_failure) const
     {
         JNIEnv *env = getEnv();
         jclass clazz = env->GetObjectClass(java_provider_global_);
@@ -106,7 +106,7 @@ public:
             const std::map<std::string, std::string> &headers,
             const nlohmann::json &body,
             std::function<void(int status_code, const std::string &response)> on_response,
-            std::function<void(int error_code, const std::string& data)> on_failure
+            std::function<void(std::int16_t error_code, const std::string& data)> on_failure
     ) override {
         executeHttp("postJson", url, headers, body, on_response, on_failure);
     }
@@ -114,7 +114,7 @@ public:
     void get(const std::string &url, const std::map<std::string, std::string> &headers,
              std::function<void(int status_code,
                                 const std::string &response)> on_response,
-                                   std::function<void(int error_code, const std::string& data)> on_failure) override
+                                   std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
     {
         executeHttp("get", url, headers, on_response, on_failure);
     }
@@ -122,19 +122,19 @@ public:
     void patch_json(const std::string &url, const std::map<std::string, std::string> &headers,
                     const nlohmann::json &body, std::function<void(int status_code,
                                                                    const std::string &response)> on_response,
-                                                                      std::function<void(int error_code, const std::string& data)> on_failure) override
+                                                                      std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
     {
         executeHttp("patchJson", url, headers, body, on_response, on_failure);
     }
 
     void destroy(const std::string &url, const std::map<std::string, std::string> &headers,
                  std::function<void(int status_code,
-                                    const std::string &response)> on_response, std::function<void(int error_code, const std::string& data)> on_failure) override
+                                    const std::string &response)> on_response, std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
     {
         executeHttp("delete", url, headers, on_response, on_failure);
     }
 
-    void put_file(const std::string& url, const std::map<std::string, std::string>& headers, const std::string& file_path, std::function<void(int64_t bytes_written, int64_t total_bytes)> on_progress, std::function<void(int status_code, const std::string& response)> on_response, std::function<void(int error_code, const std::string& data)> on_failure) override
+    void put_file(const std::string& url, const std::map<std::string, std::string>& headers, const std::string& file_path, std::function<void(int64_t bytes_written, int64_t total_bytes)> on_progress, std::function<void(int status_code, const std::string& response)> on_response, std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
     {
         JNIEnv *env = getEnv();
         jclass clazz = env->GetObjectClass(java_provider_global_);
@@ -161,7 +161,7 @@ public:
         env->DeleteLocalRef(jcallback);
     }
 
-    void put_file(const nlohmann::json& parts, const std::string& mime_type, const std::string& file_path, std::function<void(int64_t bytes_written, int64_t total_bytes)> on_progress, std::function<void(int status_code, const std::string& response)> on_response, std::function<void(int error_code, const std::string& data)> on_failure) override
+    void put_file(const nlohmann::json& parts, const std::string& mime_type, const std::string& file_path, std::function<void(int64_t bytes_written, int64_t total_bytes)> on_progress, std::function<void(int status_code, const std::string& response)> on_response, std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
     {
         JNIEnv *env = getEnv();
         jclass clazz = env->GetObjectClass(java_provider_global_);
@@ -189,7 +189,7 @@ public:
         env->DeleteLocalRef(jcallback);
     }
 
-    void download_file(const std::string& url, const std::map<std::string, std::string>& headers, const std::string& file_path, std::function<void(int64_t bytes_received, int64_t total_bytes)> on_progress, std::function<void(int status_code, const std::string& response)> on_response, std::function<void(int error_code, const std::string& data)> on_failure) override
+    void download_file(const std::string& url, const std::map<std::string, std::string>& headers, const std::string& file_path, std::function<void(int64_t bytes_received, int64_t total_bytes)> on_progress, std::function<void(int status_code, const std::string& response)> on_response, std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
     {
         JNIEnv *env = getEnv();
         jclass clazz = env->GetObjectClass(java_provider_global_);
