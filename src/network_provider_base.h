@@ -13,6 +13,7 @@
 namespace transfer_type
 {
     constexpr std::int8_t FILE = 0;
+    constexpr std::int8_t THUMBNAIL = 1;
 }
 
 class INetworkProviderBase
