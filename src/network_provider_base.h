@@ -42,7 +42,7 @@ public:
           const std::string& url,
           const std::map<std::string, std::string>& headers,
           const std::string& file_path,
-          const std::function<void(std::int64_t bytes_written, std::int64_t total_bytes)>& on_progress,
+          const nlohmann::json& task_info,
           const std::function<void(int status_code, const std::string& response)>& on_response,
           const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
       ) = 0;
@@ -50,7 +50,7 @@ public:
       const nlohmann::json& parts,
       const std::string& mime_type,
       const std::string& file_path,
-      const std::function<void(std::int64_t bytes_written, std::int64_t total_bytes)>& on_progress,
+      const nlohmann::json& task_info,
       const std::function<void(int status_code, const std::string& response)>& on_response,
       const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
   ) = 0;
@@ -58,7 +58,7 @@ public:
             const std::string& url,
             const std::map<std::string, std::string>& headers,
             const std::string& file_path,
-            const std::function<void(std::int64_t bytes_received, std::int64_t total_bytes)>& on_progress,
+            const nlohmann::json& task_info,
             const std::function<void(int status_code, const std::string& response)>& on_response,
             const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
     ) = 0;
