@@ -401,14 +401,6 @@ Item item_from_stmt(sqlite3_stmt* stmt)
 {
     Item item;
 
-    auto get_int64_column = [](sqlite3_stmt* stmt, int col) -> std::optional<long long>
-    {
-        if (sqlite3_column_type(stmt, col) == SQLITE_NULL)
-        {
-            return std::nullopt;
-        }
-        return sqlite3_column_int64(stmt, col);
-    };
     const void* id_bytes = sqlite3_column_blob(stmt, item_column_index::ID);
     item.id = UUID::from_bytes(id_bytes);
 
@@ -416,8 +408,22 @@ Item item_from_stmt(sqlite3_stmt* stmt)
     item.created_at = sqlite3_column_int64(stmt, item_column_index::CREATED_AT);
     item.updated_at = sqlite3_column_int64(stmt, item_column_index::UPDATED_AT);
 
-    item.event_at = get_int64_column(stmt, item_column_index::EVENT_AT);
-    item.deleted_at = get_int64_column(stmt, item_column_index::DELETED_AT);
+    if (sqlite3_column_type(stmt, item_column_index::EVENT_AT) == SQLITE_NULL)
+    {
+        item.event_at = std::nullopt;
+    }
+    else
+    {
+        item.event_at = sqlite3_column_int64(stmt, item_column_index::EVENT_AT);
+    }
+    if (sqlite3_column_type(stmt, item_column_index::DELETED_AT) == SQLITE_NULL)
+    {
+        item.deleted_at = std::nullopt;
+    }
+    else
+    {
+        item.deleted_at = sqlite3_column_int64(stmt, item_column_index::DELETED_AT);
+    }
 
 
     if (item.deleted_at.has_value())
