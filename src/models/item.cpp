@@ -276,11 +276,11 @@ std::filesystem::path item_local_directory_path(const std::string& app_support_p
         std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string;
 }
 
-std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_local_id, const UUID& id)
+std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_local_id, const Item& item)
 {
-    std::string id_string = id.to_string();
+    std::string id_string = item.id.to_string();
     return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" /
-        std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "original";
+        std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / item.name;
 }
 
 std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_local_id, const UUID& id)

@@ -108,7 +108,7 @@ struct Item {
 void item_delete_on_local(const std::string& app_support_path, char user_id, sqlite3* db, const UUID& item_id);
 
 std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_id, const UUID& id);
-std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_id, const UUID& id);
+std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_id, const Item& item);
 std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_id, const UUID& id);
 
 std::int16_t app_scope_from_vector(const std::vector<std::string>& app_scope);
