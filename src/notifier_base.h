@@ -42,6 +42,14 @@ constexpr std::int16_t ITEM_MOVE_SUCCESS              = 1110;
 constexpr std::int16_t ITEM_MOVE_FAILURE              = 1111;
 constexpr std::int16_t ITEM_CACHE_SUCCESS             = 1112;
 constexpr std::int16_t ITEM_CACHE_FAILURE             = 1113;
+constexpr std::int16_t ITEMS_MOVE_STARTED             = 1114;
+constexpr std::int16_t ITEMS_MOVE_SUCCESS             = 1115;
+constexpr std::int16_t ITEMS_DELETE_STARTED           = 1116;
+constexpr std::int16_t ITEMS_DELETE_FINISHED          = 1117;
+constexpr std::int16_t ITEMS_SOFT_DELETE_STARTED      = 1118;
+constexpr std::int16_t ITEMS_SOFT_DELETE_FINISHED     = 1119;
+constexpr std::int16_t ITEMS_RESTORE_STARTED          = 1120;
+constexpr std::int16_t ITEMS_RESTORE_FINISHED         = 1121;
 
 // -----------------------------------------------------------------------------
 // File & Transfer (1200 ~ 1299)
@@ -68,6 +76,7 @@ constexpr std::int16_t ACKNOWLEDGE_SYNC_EVENTS_FETCH_FAILURE = 1303;
 // -----------------------------------------------------------------------------
 constexpr std::int16_t DATABASE_ERROR                 = 1900;
 constexpr std::int16_t NETWORK_CONNECTION_FAILURE    = 1901;
+constexpr std::int16_t RESOURCE_BUSY                  = 1902;
 
 class INotifierBase
 {
