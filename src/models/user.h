@@ -24,8 +24,27 @@ struct User {
     std::string cached_picture_path;
     std::int64_t created_at;
     std::int64_t updated_at;
+    std::int64_t access_token_expires_at;
     char local_id;
     std::int8_t login_type;
+
+    static std::int64_t calculate_expires_at(std::int64_t expires_in)
+    {
+        auto now_sec = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+
+        return now_sec + expires_in;
+    }
+
+    [[nodiscard]] bool is_token_refresh_required() const
+    {
+        auto now = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+
+        return (access_token_expires_at - 180) <= now;
+    }
 };
 
 void get_user_data(const std::string& app_support_path, User &user);
