@@ -22,7 +22,6 @@ struct User {
     std::string name;
     std::string email;
     std::string cached_picture_path;
-    std::int64_t expires_at = 0;
     std::int64_t created_at;
     std::int64_t updated_at;
     char local_id;
