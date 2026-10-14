@@ -105,36 +105,36 @@ public:
             const std::string &url,
             const std::map<std::string, std::string> &headers,
             const nlohmann::json &body,
-            std::function<void(int status_code, const std::string &response)> on_response,
-            std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+            const std::function<void(int status_code, const std::string &response)>& on_response,
+            const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
     ) override {
         executeHttp("postJson", url, headers, body, on_response, on_failure);
     }
 
     void get(const std::string &url, const std::map<std::string, std::string> &headers,
-             std::function<void(int status_code,
-                                const std::string &response)> on_response,
-                                   std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
+             const std::function<void(int status_code,
+                                const std::string &response)>& on_response,
+                                   const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure) override
     {
         executeHttp("get", url, headers, on_response, on_failure);
     }
 
     void patch_json(const std::string &url, const std::map<std::string, std::string> &headers,
-                    const nlohmann::json &body, std::function<void(int status_code,
-                                                                   const std::string &response)> on_response,
-                                                                      std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
+                    const nlohmann::json &body, const std::function<void(int status_code,
+                                                                   const std::string &response)>& on_response,
+                                                                      const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure) override
     {
         executeHttp("patchJson", url, headers, body, on_response, on_failure);
     }
 
     void destroy(const std::string &url, const std::map<std::string, std::string> &headers,
-                 std::function<void(int status_code,
-                                    const std::string &response)> on_response, std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
+                 const std::function<void(int status_code,
+                                    const std::string &response)>& on_response, const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure) override
     {
-        executeHttp("delete", url, headers, on_response, on_failure);
+        executeHttp("destory", url, headers, on_response, on_failure);
     }
 
-    void put_file(const std::string& url, const std::map<std::string, std::string>& headers, const std::string& file_path, std::function<void(int64_t bytes_written, int64_t total_bytes)> on_progress, std::function<void(int status_code, const std::string& response)> on_response, std::function<void(std::int16_t error_code, const std::string& data)> on_failure) override
+    void put_file(const std::string& url, const std::map<std::string, std::string>& headers, const std::string& file_path, std::function<void(int64_t bytes_written, int64_t total_bytes)> on_progress, const nlohmann::json task_info, const std::function<void(int status_code, const std::string& response)>& on_response, const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure) override
     {
         JNIEnv *env = getEnv();
         jclass clazz = env->GetObjectClass(java_provider_global_);

@@ -113,4 +113,8 @@ set(SHARED_JAVA_BINDING_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_list.h
         ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_list.cpp
         ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_item.h
+        ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_uuid.h
+        ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_user.h
+        ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_integer.h
+        ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_long.h
 )

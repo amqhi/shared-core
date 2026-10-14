@@ -44,6 +44,7 @@ constexpr std::int16_t ITEM_CACHE_SUCCESS             = 1112;
 constexpr std::int16_t ITEM_CACHE_FAILURE             = 1113;
 constexpr std::int16_t ITEMS_MOVE_STARTED             = 1114;
 constexpr std::int16_t ITEMS_MOVE_SUCCESS             = 1115;
+constexpr std::int16_t ITEMS_MOVE_CANCELED             = 1114;
 constexpr std::int16_t ITEMS_DELETE_STARTED           = 1116;
 constexpr std::int16_t ITEMS_DELETE_FINISHED          = 1117;
 constexpr std::int16_t ITEMS_SOFT_DELETE_STARTED      = 1118;

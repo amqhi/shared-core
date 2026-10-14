@@ -30,7 +30,7 @@ public:
         }
     }
 
-    bool set_secure_string(const std::string& key, const std::string& value) override {
+    bool set_secure_string(const std::string_view& key, const std::string& value) override {
         JNIEnv* env = getEnv();
         jclass clazz = env->GetObjectClass(java_provider_global_);
         jmethodID methodId = env->GetMethodID(clazz, "setSecureString", "(Ljava/lang/String;Ljava/lang/String;)Z");
@@ -45,7 +45,7 @@ public:
         return result == JNI_TRUE;
     }
 
-    std::string get_secure_string(const std::string& key, const std::string& default_value) override {
+    std::string get_secure_string(const std::string_view& key, const std::string& default_value) override {
         JNIEnv* env = getEnv();
         jclass clazz = env->GetObjectClass(java_provider_global_);
         jmethodID methodId = env->GetMethodID(clazz, "getSecureString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
@@ -65,7 +65,7 @@ public:
         return result;
     }
 
-    void remove_secure_string(const std::string& key) override {
+    void remove_secure_string(const std::string_view& key) override {
         JNIEnv* env = getEnv();
         jclass clazz = env->GetObjectClass(java_provider_global_);
         jmethodID methodId = env->GetMethodID(clazz, "removeSecureString", "(Ljava/lang/String;)V");
