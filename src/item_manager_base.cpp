@@ -945,8 +945,7 @@ void ItemManagerBase::download_next_thumbnail(std::size_t index, std::int16_t ev
     }
 
 
-    api::items::get_thumbnail_download_url(id, m_core.settings().instance_url(),
-                                           m_core.selected_user()->access_token, m_core.network_provider(),
+    api::items::get_thumbnail_download_url(m_core, id.to_string(),
                                            [this, id, index, event_code](int status_code, const std::string& response)
                                            {
                                                fs::path thumbnail_path = item_thumbnail_path(m_core, id);
@@ -995,9 +994,7 @@ void ItemManagerBase::download_next_thumbnail(std::size_t index, std::int16_t ev
 
 void ItemManagerBase::refresh_phase1_files()
 {
-    api::files::get_files(m_core.settings().instance_url(), m_core.selected_user()->access_token,
-                          m_core.network_provider(),
-                          [this](int status_code, const std::string& response)
+    api::files::get_files(m_core, [this](int status_code, const std::string& response)
                           {
                               if (status_code == 200)
                               {
@@ -1054,10 +1051,7 @@ void ItemManagerBase::refresh_phase1_files()
 
 void ItemManagerBase::refresh_phase2_folders()
 {
-    api::folders::get_folders(m_core.settings().instance_url(),
-                              m_core.selected_user()->access_token,
-                              m_core.network_provider(),
-                              [this](int status_code, const std::string& response)
+    api::folders::get_folders(m_core, [this](int status_code, const std::string& response)
                               {
                                   if (status_code == 200)
                                   {
@@ -1127,8 +1121,7 @@ void ItemManagerBase::refresh_phase2_folders()
 
 void ItemManagerBase::download_thumbnail(const UUID& id)
 {
-    api::items::get_thumbnail_download_url(id, m_core.settings().instance_url(),
-                                           m_core.selected_user()->access_token, m_core.network_provider(),
+    api::items::get_thumbnail_download_url(m_core, id.to_string(),
                                            [this, id](int status_code, const std::string& response)
                                            {
                                                fs::path thumbnail_path = item_thumbnail_path(m_core, id);

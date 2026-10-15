@@ -7,6 +7,8 @@
 #include <functional>
 #include <string>
 
+#include "auth_tokens.h"
+
 struct FileMetadata;
 class CoreBase;
 struct UUID;
@@ -17,32 +19,38 @@ using OnFailure = std::function<void(std::int16_t error_code, const std::string&
 
 namespace api
 {
+    // void request_with_auto_refresh(
+    //     CoreBase& core,
+    //     const std::function<void()>& execute_request
+    // );
+    //
+    // namespace auth
+    // {
+    //     void refresh(
+    //         CoreBase& core,
+    //         const std::function<void()>& on_success);
+    // }
+
     namespace sync
     {
-        void get_sync_events(const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response,
-                                const OnFailure& on_failure);
         void get_sync_events(
-         CoreBase& core,
-         const OnResponse& on_response,
-         const OnFailure& on_failure);
-        void acknowledge_events(const std::vector<std::string>& item_ids, const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure);
+            CoreBase& core,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
         void acknowledge_events(
-         CoreBase& core,
-         const std::vector<std::string>& item_ids,
-         const OnResponse& on_response,
-         const OnFailure& on_failure);
+            CoreBase& core,
+            const std::vector<std::string>& item_ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
     }
 
     namespace items
     {
-        void get_item(const std::string& id, const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response,
-                                const OnFailure& on_failure);
-        void get_thumbnail_download_url(const UUID& item_id, const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure);
         void get_item(
-           CoreBase& core,
-           const std::string& id,
-           const OnResponse& on_response,
-           const OnFailure& on_failure);
+            CoreBase& core,
+            const std::string& id,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
         void get_thumbnail_download_url(
             CoreBase& core,
             const std::string& id,
@@ -53,22 +61,18 @@ namespace api
             CoreBase& core,
             const std::string& id,
             const OnResponse& on_response);
-
-        void get_thumbnail_download_url(
-            CoreBase& core,
-            const std::string& id,
-            const std::function<void(std::string& url)>& on_success);
     }
 
     namespace files
     {
-        void get_files(const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure);
+        void get_files(CoreBase& core, const OnResponse& on_response,
+                       const OnFailure& on_failure);
         void get_file_metadata(
-           CoreBase& core,
-           const std::string& id,
-           const OnResponse& on_response,
-           const OnFailure& on_failure
-       );
+            CoreBase& core,
+            const std::string& id,
+            const OnResponse& on_response,
+            const OnFailure& on_failure
+        );
         void get_file_metadata(
             CoreBase& core,
             const std::string& id,
@@ -89,7 +93,8 @@ namespace api
 
     namespace folders
     {
-        void get_folders(const std::string& instance_url, const std::string& access_token, INetworkProviderBase& network_provider_base, const OnResponse& on_response, const OnFailure& on_failure);
+        void get_folders(CoreBase& core, const OnResponse& on_response,
+                         const OnFailure& on_failure);
     }
 }
 
