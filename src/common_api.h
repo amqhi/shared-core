@@ -19,17 +19,17 @@ using OnFailure = std::function<void(std::int16_t error_code, const std::string&
 
 namespace api
 {
-    // void request_with_auto_refresh(
-    //     CoreBase& core,
-    //     const std::function<void()>& execute_request
-    // );
-    //
-    // namespace auth
-    // {
-    //     void refresh(
-    //         CoreBase& core,
-    //         const std::function<void()>& on_success);
-    // }
+    void request_with_auto_refresh(
+        CoreBase& core,
+        const std::function<void()>& execute_request
+    );
+
+    namespace auth
+    {
+        void refresh(
+            CoreBase& core,
+            const std::function<void()>& on_success);
+    }
 
     namespace sync
     {

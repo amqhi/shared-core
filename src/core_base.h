@@ -44,6 +44,7 @@ public:
     void handle_logout();
 
     [[nodiscard]] INetworkProviderBase& network_provider() const { return m_network_provider; }
+    [[nodiscard]] ISecureStorageProviderBase& secure_storage_provider() const { return m_secure_storage_provider; }
     [[nodiscard]] INotifierBase& notifier() const { return m_notifier; }
     [[nodiscard]] IPlatformUtilsBase& platform_utils() const { return m_platform_utils; }
     [[nodiscard]] ItemManagerBase& item_manager() const { return *m_item_manager; }
