@@ -7,6 +7,7 @@
 #include "user.h"
 #include <string>
 
+#include "core_base.h"
 #include "date_time_utils.h"
 #include "file_metadata.h"
 #include "folder_metadata.h"
@@ -289,6 +290,22 @@ std::filesystem::path item_thumbnail_path(const std::string& app_support_path, c
     return std::filesystem::path(app_support_path) / std::string_view(&user_local_id, 1) / "files" /
         std::string(1, id_string.at(0)) / std::string(1, id_string.at(1)) / id_string / "thumbnail.jpg";
 }
+
+void item_delete_on_local(CoreBase& core, const Item& item)
+{
+    item_delete_on_local(core.app_support_path(), core.selected_user()->local_id, core.database_provider().database(), item.id);
+}
+
+std::filesystem::path item_local_file_path(CoreBase& core, const Item& item)
+{
+    return item_local_file_path(core.app_support_path(), core.selected_user()->local_id, item);
+}
+
+std::filesystem::path item_thumbnail_path(CoreBase& core, const UUID& id)
+{
+    return item_thumbnail_path(core.app_support_path(), core.selected_user()->local_id, id);
+}
+
 
 std::int16_t app_scope_from_vector(const std::vector<std::string>& data)
 {

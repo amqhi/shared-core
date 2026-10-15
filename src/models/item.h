@@ -12,6 +12,7 @@
 #include <filesystem>
 #include "uuid.h"
 
+class CoreBase;
 struct FileMetadata;
 struct FolderMetadata;
 
@@ -110,6 +111,9 @@ void item_delete_on_local(const std::string& app_support_path, char user_id, sql
 std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_id, const UUID& id);
 std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_id, const Item& item);
 std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_id, const UUID& id);
+void item_delete_on_local(CoreBase& core, const Item& item);
+std::filesystem::path item_local_file_path(CoreBase& core, const Item& item);
+std::filesystem::path item_thumbnail_path(CoreBase& core, const UUID& id);
 
 std::int16_t app_scope_from_vector(const std::vector<std::string>& app_scope);
 std::int16_t app_scope_from_json(const nlohmann::json& app_scope);

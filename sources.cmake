@@ -58,6 +58,14 @@ set(SHARED_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/deps/sqlite/sqlite3.c
         ${CMAKE_CURRENT_LIST_DIR}/deps/sqlite/sqlite3.h
         ${CMAKE_CURRENT_LIST_DIR}/deps/json/json.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/core_base.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/core_base.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/item_manager_base.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/item_manager_base.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/cached_state_base.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/cached_state_base.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/settings_base.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/settings_base.h
         ${CMAKE_CURRENT_LIST_DIR}/src/utils/map_utils.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utils/map_utils.h
         ${CMAKE_CURRENT_LIST_DIR}/src/utils/vector_utils.cpp
@@ -68,6 +76,8 @@ set(SHARED_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/src/utils/json_utils.h
         ${CMAKE_CURRENT_LIST_DIR}/src/notifier_base.h
         ${CMAKE_CURRENT_LIST_DIR}/src/network_provider_base.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/database_provider_base.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/database_provider_base.h
         ${CMAKE_CURRENT_LIST_DIR}/src/secure_storage_provider_base.h
         ${CMAKE_CURRENT_LIST_DIR}/src/platform_utils_base.h
         ${CMAKE_CURRENT_LIST_DIR}/src/utils/date_time_utils.cpp
