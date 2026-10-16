@@ -187,9 +187,6 @@ void api::auth::refresh(CoreBase& core, const std::function<void()>& on_success)
                 else
                 {
                     AuthTokens auth_tokens = AuthTokens::from_json(json);
-                    core.secure_storage_provider().set_secure_string(
-                        std::string_view(&core.selected_user()->local_id, 1),
-                        auth_tokens.serialize());
                     core.selected_user()->access_token = auth_tokens.access_token;
                     core.selected_user()->refresh_token = auth_tokens.refresh_token;
                     core.selected_user()->access_token_expires_at = User::calculate_expires_at(auth_tokens.expires_in);
@@ -201,7 +198,7 @@ void api::auth::refresh(CoreBase& core, const std::function<void()>& on_success)
                 core.selected_user()->access_token = "";
                 core.selected_user()->refresh_token = "";
                 core.secure_storage_provider().remove_secure_string(
-                    std::string_view(&core.selected_user()->local_id, 1));
+                    core.selected_user()->local_id);
                 core.notifier().notify(RE_LOGIN_REQUIRED);
             }
         }

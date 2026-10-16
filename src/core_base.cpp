@@ -108,8 +108,6 @@ void CoreBase::exchange_google_token(const std::string& id_token)
                 else
                 {
                     AuthTokens auth_tokens = AuthTokens::from_json(json);
-                    m_secure_storage_provider.set_secure_string(std::string_view(&m_selected_user_id, 1),
-                                                                auth_tokens.serialize());
                     selected_user()->access_token = auth_tokens.access_token;
                     selected_user()->refresh_token = auth_tokens.refresh_token;
                     selected_user()->access_token_expires_at = User::calculate_expires_at(auth_tokens.expires_in);
@@ -208,8 +206,6 @@ void CoreBase::handle_login(const std::string& email, const std::string& passwor
                 else
                 {
                     AuthTokens auth_tokens = AuthTokens::from_json(json);
-                    m_secure_storage_provider.set_secure_string(std::string_view(&m_selected_user_id, 1),
-                                                                auth_tokens.serialize());
                     selected_user()->access_token = auth_tokens.access_token;
                     selected_user()->refresh_token = auth_tokens.refresh_token;
                     selected_user()->access_token_expires_at = User::calculate_expires_at(auth_tokens.expires_in);
@@ -347,7 +343,7 @@ void CoreBase::handle_logout()
         {
             if (status_code == 200)
             {
-                m_secure_storage_provider.remove_secure_string(std::string_view(&m_selected_user_id, 1));
+                m_secure_storage_provider.remove_secure_string(m_selected_user_id);
                 fs::path user_dir_path = fs::path(m_app_support_path) / std::string_view(&m_selected_user_id, 1);
                 fs::remove_all(user_dir_path);
                 for (auto it = m_users.begin(); it != m_users.end(); ++it)
