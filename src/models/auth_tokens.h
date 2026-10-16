@@ -17,7 +17,6 @@ struct AuthTokens {
     int8_t token_type;
 
     static AuthTokens from_json(const nlohmann::json& json);
-    [[nodiscard]] std::string serialize() const;
 };
 
 #endif //SHARED_AUTH_TOKENS_H

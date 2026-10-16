@@ -101,6 +101,11 @@ void CoreBase::exchange_google_token(const std::string& id_token)
                     selected_user()->access_token = auth_tokens.access_token;
                     selected_user()->refresh_token = auth_tokens.refresh_token;
                     selected_user()->access_token_expires_at = User::calculate_expires_at(auth_tokens.expires_in);
+                    nlohmann::json data;
+                    data["access_token"] = selected_user()->access_token;
+                    data["refresh_token"] = selected_user()->refresh_token;
+                    data["expires_at"] = selected_user()->access_token_expires_at;
+                    m_secure_storage_provider.set_secure_string(m_selected_user_id, data.dump());
                 }
             }
             else
@@ -152,6 +157,11 @@ void CoreBase::handle_login(const std::string& email, const std::string& passwor
                     selected_user()->access_token = auth_tokens.access_token;
                     selected_user()->refresh_token = auth_tokens.refresh_token;
                     selected_user()->access_token_expires_at = User::calculate_expires_at(auth_tokens.expires_in);
+                    nlohmann::json data;
+                    data["access_token"] = selected_user()->access_token;
+                    data["refresh_token"] = selected_user()->refresh_token;
+                    data["expires_at"] = selected_user()->access_token_expires_at;
+                    m_secure_storage_provider.set_secure_string(m_selected_user_id, data.dump());
                     m_item_manager->refresh();
                     m_notifier.notify(LOGIN_SUCCESS);
                     fetch_user_info();

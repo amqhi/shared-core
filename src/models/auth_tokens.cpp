@@ -16,13 +16,3 @@ AuthTokens AuthTokens::from_json(const nlohmann::json& json)
     auth_tokens.token_type = BEARER;
     return auth_tokens;
 }
-
-std::string AuthTokens::serialize() const
-{
-    auto json = nlohmann::json();
-    json["access_token"] = access_token;
-    json["refresh_token"] = refresh_token;
-    json["expires_in"] = expires_in;
-    json["token_type"] = token_type;
-    return to_string(json);
-}
