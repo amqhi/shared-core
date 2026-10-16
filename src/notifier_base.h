@@ -44,13 +44,16 @@ constexpr std::int16_t ITEM_CACHE_SUCCESS             = 1112;
 constexpr std::int16_t ITEM_CACHE_FAILURE             = 1113;
 constexpr std::int16_t ITEMS_MOVE_STARTED             = 1114;
 constexpr std::int16_t ITEMS_MOVE_SUCCESS             = 1115;
-constexpr std::int16_t ITEMS_MOVE_CANCELED             = 1114;
-constexpr std::int16_t ITEMS_DELETE_STARTED           = 1116;
-constexpr std::int16_t ITEMS_DELETE_FINISHED          = 1117;
-constexpr std::int16_t ITEMS_SOFT_DELETE_STARTED      = 1118;
-constexpr std::int16_t ITEMS_SOFT_DELETE_FINISHED     = 1119;
-constexpr std::int16_t ITEMS_RESTORE_STARTED          = 1120;
-constexpr std::int16_t ITEMS_RESTORE_FINISHED         = 1121;
+constexpr std::int16_t ITEMS_MOVE_FAILURE             = 1116;
+constexpr std::int16_t ITEMS_DELETE_STARTED           = 1117;
+constexpr std::int16_t ITEMS_DELETE_SUCCESS           = 1118;
+constexpr std::int16_t ITEMS_DELETE_FAILURE          = 1119;
+constexpr std::int16_t ITEMS_SOFT_DELETE_STARTED      = 1120;
+constexpr std::int16_t ITEMS_SOFT_DELETE_SUCCESS      = 1121;
+constexpr std::int16_t ITEMS_SOFT_DELETE_FAILURE     = 1122;
+constexpr std::int16_t ITEMS_RESTORE_STARTED          = 1123;
+constexpr std::int16_t ITEMS_RESTORE_SUCCESS          = 1124;
+constexpr std::int16_t ITEMS_RESTORE_FAILURE         = 1125;
 
 // -----------------------------------------------------------------------------
 // File & Transfer (1200 ~ 1299)
