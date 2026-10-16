@@ -18,7 +18,7 @@ void api::request_with_auto_refresh(CoreBase& core, const std::function<void()>&
 {
     if (core.selected_user()->is_token_refresh_required())
     {
-        auth::refresh(core, [&execute_request]()
+        auth::refresh(core, [execute_request]()
         {
             execute_request();
         });
