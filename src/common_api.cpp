@@ -28,7 +28,7 @@ void api::request_with_auto_refresh(CoreBase& core, const std::function<void()>&
 }
 
 
-void api::sync::get_sync_events(CoreBase& core, const OnResponse& on_response, const OnFailure& on_failure)
+void api::sync::get_sync_events_raw(CoreBase& core, const OnResponse& on_response, const OnFailure& on_failure)
 {
         std::string url = core.settings().instance_url() + "/sync/events";
         std::map<std::string, std::string> headers;
@@ -38,7 +38,15 @@ void api::sync::get_sync_events(CoreBase& core, const OnResponse& on_response, c
                                   on_response, on_failure);
 }
 
-void api::sync::acknowledge_events(
+void api::sync::get_sync_events(CoreBase& core, const OnResponse& on_response, const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, on_response, on_failure]()
+    {
+        get_sync_events_raw(core, on_response, on_failure);
+    });
+}
+
+void api::sync::acknowledge_events_raw(
             CoreBase& core,
             const std::vector<std::string>& item_ids,
             const OnResponse& on_response,
@@ -52,7 +60,19 @@ void api::sync::acknowledge_events(
     core.network_provider().post_json(url, headers, body, on_response, on_failure);
 }
 
-void api::items::get_item(CoreBase& core,
+void api::sync::acknowledge_events(
+            CoreBase& core,
+            const std::vector<std::string>& item_ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, item_ids, on_response, on_failure]()
+    {
+        acknowledge_events_raw(core, item_ids, on_response, on_failure);
+    });
+}
+
+void api::items::get_item_raw(CoreBase& core,
             const std::string& id, const OnResponse& on_response,
                           const OnFailure& on_failure)
 {
@@ -64,7 +84,17 @@ void api::items::get_item(CoreBase& core,
                               on_response, on_failure);
 }
 
-void api::items::get_thumbnail_download_url(
+void api::items::get_item(CoreBase& core,
+            const std::string& id, const OnResponse& on_response,
+                          const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, id, on_response, on_failure]()
+    {
+        get_item_raw(core, id, on_response, on_failure);
+    });
+}
+
+void api::items::get_thumbnail_download_url_raw(
             CoreBase& core,
             const std::string& id,
             const OnResponse& on_response,
@@ -78,7 +108,19 @@ void api::items::get_thumbnail_download_url(
                               on_response, on_failure);
 }
 
-void api::files::get_files(CoreBase& core, const OnResponse& on_response,
+void api::items::get_thumbnail_download_url(
+            CoreBase& core,
+            const std::string& id,
+            const OnResponse& on_response,
+            const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, id, &on_response, &on_failure]()
+    {
+        get_thumbnail_download_url_raw(core, id, on_response, on_failure);
+    });
+}
+
+void api::files::get_files_raw(CoreBase& core, const OnResponse& on_response,
                            const OnFailure& on_failure)
 {
     std::string url = core.settings().instance_url() + "/files";
@@ -89,7 +131,16 @@ void api::files::get_files(CoreBase& core, const OnResponse& on_response,
                               on_response, on_failure);
 }
 
-void api::folders::get_folders(CoreBase& core, const OnResponse& on_response,
+void api::files::get_files(CoreBase& core, const OnResponse& on_response,
+                           const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, &on_response, &on_failure]()
+    {
+        get_files_raw(core, on_response, on_failure);
+    });
+}
+
+void api::folders::get_folders_raw(CoreBase& core, const OnResponse& on_response,
                                const OnFailure& on_failure)
 {
     std::string url = core.settings().instance_url() + "/folders";
@@ -100,7 +151,16 @@ void api::folders::get_folders(CoreBase& core, const OnResponse& on_response,
                               on_response, on_failure);
 }
 
-void api::files::get_file_metadata(CoreBase& core, const std::string& id, const OnResponse& on_response,
+void api::folders::get_folders(CoreBase& core, const OnResponse& on_response,
+                               const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, &on_response, &on_failure]()
+    {
+        get_folders_raw(core, on_response, on_failure);
+    });
+}
+
+void api::files::get_file_metadata_raw(CoreBase& core, const std::string& id, const OnResponse& on_response,
                                    const OnFailure& on_failure)
 {
     std::string url = core.settings().instance_url() + "/files/" + id;
@@ -110,6 +170,15 @@ void api::files::get_file_metadata(CoreBase& core, const std::string& id, const 
                                 headers,
                                 on_response,
                                 on_failure);
+}
+
+void api::files::get_file_metadata(CoreBase& core, const std::string& id, const OnResponse& on_response,
+                                   const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, &id, &on_response, &on_failure]()
+    {
+        get_file_metadata_raw(core, id, on_response, on_failure);
+    });
 }
 
 void api::files::get_file_metadata(CoreBase& core, const std::string& id, const OnResponse& on_response)
@@ -141,7 +210,7 @@ void api::files::get_file_metadata(CoreBase& core, const std::string& id,
     });
 }
 
-void api::files::get_download_url(CoreBase& core, const std::string& id,
+void api::files::get_download_url_raw(CoreBase& core, const std::string& id,
                                   const std::function<void(int status_code, const std::string& response)>& on_response,
                                   const std::function<void(std::int16_t error_code, const std::string& data)>&
                                   on_failure)
@@ -153,6 +222,17 @@ void api::files::get_download_url(CoreBase& core, const std::string& id,
                                 headers,
                                 on_response,
                                 on_failure);
+}
+
+void api::files::get_download_url(CoreBase& core, const std::string& id,
+                                  const std::function<void(int status_code, const std::string& response)>& on_response,
+                                  const std::function<void(std::int16_t error_code, const std::string& data)>&
+                                  on_failure)
+{
+    request_with_auto_refresh(core, [&core, &id, &on_response, &on_failure]()
+    {
+        get_download_url_raw(core, id, on_response, on_failure);
+    });
 }
 
 void api::items::get_thumbnail_download_url(CoreBase& core, const std::string& id, const OnResponse& on_response)

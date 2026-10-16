@@ -33,8 +33,17 @@ namespace api
 
     namespace sync
     {
+        void get_sync_events_raw(
+            CoreBase& core,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
         void get_sync_events(
             CoreBase& core,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void acknowledge_events_raw(
+            CoreBase& core,
+            const std::vector<std::string>& item_ids,
             const OnResponse& on_response,
             const OnFailure& on_failure);
         void acknowledge_events(
@@ -46,7 +55,17 @@ namespace api
 
     namespace items
     {
+        void get_item_raw(
+            CoreBase& core,
+            const std::string& id,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
         void get_item(
+            CoreBase& core,
+            const std::string& id,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void get_thumbnail_download_url_raw(
             CoreBase& core,
             const std::string& id,
             const OnResponse& on_response,
@@ -65,8 +84,16 @@ namespace api
 
     namespace files
     {
+        void get_files_raw(CoreBase& core, const OnResponse& on_response,
+                           const OnFailure& on_failure);
         void get_files(CoreBase& core, const OnResponse& on_response,
                        const OnFailure& on_failure);
+        void get_file_metadata_raw(
+            CoreBase& core,
+            const std::string& id,
+            const OnResponse& on_response,
+            const OnFailure& on_failure
+        );
         void get_file_metadata(
             CoreBase& core,
             const std::string& id,
@@ -83,6 +110,12 @@ namespace api
             const std::string& id,
             const std::function<void(FileMetadata& file_metadata)>& on_success
         );
+        void get_download_url_raw(
+            CoreBase& core,
+            const std::string& id,
+            const std::function<void(int status_code, const std::string& response)>& on_response,
+            const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
+        );
         void get_download_url(
             CoreBase& core,
             const std::string& id,
@@ -93,6 +126,8 @@ namespace api
 
     namespace folders
     {
+        void get_folders_raw(CoreBase& core, const OnResponse& on_response,
+                             const OnFailure& on_failure);
         void get_folders(CoreBase& core, const OnResponse& on_response,
                          const OnFailure& on_failure);
     }
