@@ -8,6 +8,7 @@
 #include "request_failure.h"
 #include "sqlite_utils.h"
 #include <algorithm>
+#include <unordered_set>
 
 #include "mime_utils.h"
 #include "network_error.h"
@@ -17,6 +18,7 @@
 #include "date_time_utils.h"
 #include "item_utils.h"
 #include "sync_event.h"
+#include "vector_utils.h"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -759,6 +761,44 @@ void ItemManagerBase::move_item(const UUID& id, const UUID& parent_id)
     });
 }
 
+void ItemManagerBase::move_items(const std::vector<UUID>& ids, const UUID& parent_id, const UUID& old_parent_id)
+{
+    vector_utils::subtract<UUID>(m_id_lists[old_parent_id], ids);
+    m_id_lists[parent_id].insert(m_id_lists[parent_id].end(), ids.begin(), ids.end());
+    sort_items(parent_id);
+
+    json data;
+    data["parent_id"] = parent_id.to_string();
+    data["old_parent_id"] = old_parent_id.to_string();
+    m_core.notifier().notify(ITEMS_MOVE_STARTED, data);
+    api::items::move_items(m_core, ids, parent_id, [this, ids, parent_id, old_parent_id](int status_code, const std::string& response)
+    {
+        if (status_code == 200)
+        {
+            for (const auto& id : ids)
+            {
+                m_items[id].parent_id = parent_id;
+                m_items[id].save(m_core.database_provider().database());
+            }
+            m_core.notifier().notify(ITEMS_MOVE_SUCCESS, response);
+        }
+        else
+        {
+            // rollback to previous state
+            vector_utils::subtract<UUID>(m_id_lists[parent_id], ids);
+            m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+            sort_items(old_parent_id);
+            m_core.notifier().notify(ITEMS_MOVE_FAILURE, response);
+        }
+    }, [this, ids, parent_id, old_parent_id](std::int16_t error_code, const std::string& data)
+                           {
+        vector_utils::subtract<UUID>(m_id_lists[parent_id], ids);
+      m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+      sort_items(old_parent_id);
+      m_core.notifier().notify(ITEMS_MOVE_FAILURE);
+                           });
+}
+
 void ItemManagerBase::rename_item(const UUID& id, const std::string& name)
 {
     api::request_with_auto_refresh(m_core, [this, id, &name]()
@@ -836,6 +876,44 @@ void ItemManagerBase::soft_delete_item(const UUID& id)
     });
 }
 
+void ItemManagerBase::soft_delete_items(const std::vector<UUID>& ids, const UUID& old_parent_id)
+{
+    vector_utils::subtract<UUID>(m_id_lists[old_parent_id], ids);
+    m_id_lists[special_folder::TRASH].insert(m_id_lists[special_folder::TRASH].end(), ids.begin(), ids.end());
+    sort_items(special_folder::TRASH);
+
+    json data;
+    data["old_parent_id"] = old_parent_id.to_string();
+    m_core.notifier().notify(ITEMS_SOFT_DELETE_STARTED, data);
+    api::items::soft_delete_items(m_core, ids, [this, ids, old_parent_id](int status_code, const std::string& response)
+    {
+        if (status_code == 200)
+        {
+            for (const auto& id : ids)
+            {
+                m_items[id].deleted_at = current_date_time_utc_int64();
+                m_items[id].parent_id = special_folder::TRASH;
+                m_items[id].save(m_core.database_provider().database());
+            }
+            m_core.notifier().notify(ITEMS_SOFT_DELETE_SUCCESS, response);
+        }
+        else
+        {
+            // rollback to previous state
+            vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
+            m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+            sort_items(old_parent_id);
+            m_core.notifier().notify(ITEMS_SOFT_DELETE_FAILURE, response);
+        }
+    }, [this, ids, old_parent_id](std::int16_t error_code, const std::string& data)
+                           {
+        vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
+         m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+         sort_items(old_parent_id);
+         m_core.notifier().notify(ITEMS_SOFT_DELETE_FAILURE);
+                           });
+}
+
 void ItemManagerBase::restore_item(const UUID& id)
 {
     api::request_with_auto_refresh(m_core, [this, id]()
@@ -890,6 +968,65 @@ void ItemManagerBase::restore_item(const UUID& id)
     });
 }
 
+void ItemManagerBase::restore_items(const std::vector<UUID>& ids, const UUID& old_parent_id)
+{
+    vector_utils::subtract<UUID>(m_id_lists[old_parent_id], ids);
+
+    m_core.notifier().notify(ITEMS_RESTORE_STARTED);
+    api::items::soft_delete_items(m_core, ids, [this, ids, old_parent_id](int status_code, const std::string& response)
+    {
+        if (status_code == 200)
+        {
+            json body = json::parse(response, nullptr, false);
+            if (body.is_discarded())
+            {
+                m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+       sort_items(old_parent_id);
+                m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response);
+                return;
+            }
+            if (!body.is_array())
+            {
+                m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+       sort_items(old_parent_id);
+                m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response);
+        return;
+            }
+
+            std::unordered_set<UUID> updated_folder_ids;
+            for (const auto& element: body)
+            {
+                UUID id = UUID::from_string(json_utils::get_string(element, "id"));
+                UUID original_parent_id = UUID::from_string(json_utils::get_string(element, "parent_id"));
+                m_items[id].parent_id = original_parent_id;
+                m_items[id].save(m_core.database_provider().database());
+                m_id_lists[original_parent_id].push_back(id);
+                updated_folder_ids.emplace(original_parent_id);
+            }
+
+            for (const auto& folder_id: updated_folder_ids)
+            {
+                sort_items(folder_id);
+            }
+
+            m_core.notifier().notify(ITEMS_RESTORE_SUCCESS, response);
+        }
+        else
+        {
+            // rollback to previous state
+            m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+            sort_items(old_parent_id);
+            m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response);
+        }
+    }, [this, ids, old_parent_id](std::int16_t error_code, const std::string& data)
+                           {
+        // rollback to previous state
+        m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+sort_items(old_parent_id);
+        m_core.notifier().notify(ITEMS_RESTORE_FAILURE);
+                           });
+}
+
 void ItemManagerBase::delete_item(const UUID& id)
 {
     api::request_with_auto_refresh(m_core, [this, id]()
@@ -930,6 +1067,47 @@ void ItemManagerBase::delete_item(const UUID& id)
                                           {
                                           });
     });
+}
+
+void ItemManagerBase::delete_items(const std::vector<UUID>& ids)
+{
+    vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
+
+    m_core.notifier().notify(ITEMS_DELETE_STARTED);
+    api::items::soft_delete_items(m_core, ids, [this, ids](int status_code, const std::string& response)
+    {
+        if (status_code == 200)
+        {
+            for (const auto& id : ids)
+            {
+                item_delete_on_local(m_core, m_items[id]);
+                switch (m_items[id].type)
+                {
+                    case item_type::FILE:
+                    delete_file_metadata(m_core.database_provider().database(),
+                                                                         m_file_metadata[id]);
+                    break;
+                    case item_type::FOLDER:
+                    delete_folder_metadata(m_core.database_provider().database(), id);
+                    default:
+                    break;
+                }
+            }
+            m_core.notifier().notify(ITEMS_DELETE_SUCCESS, response);
+        }
+        else
+        {
+            // rollback to previous state
+            m_id_lists[special_folder::TRASH].insert(m_id_lists[special_folder::TRASH].end(), ids.begin(), ids.end());
+            sort_items(special_folder::TRASH);
+            m_core.notifier().notify(ITEMS_DELETE_FAILURE, response);
+        }
+    }, [this, ids](std::int16_t error_code, const std::string& data)
+                           {
+        m_id_lists[special_folder::TRASH].insert(m_id_lists[special_folder::TRASH].end(), ids.begin(), ids.end());
+         sort_items(special_folder::TRASH);
+        m_core.notifier().notify(ITEMS_DELETE_FAILURE);
+                           });
 }
 
 void ItemManagerBase::download_thumbnails(int16_t event_code)

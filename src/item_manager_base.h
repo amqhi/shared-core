@@ -41,10 +41,14 @@ class ItemManagerBase
                          const std::string& mime_type);
     void update_item(const UUID& id, const ItemAttributes& item_attributes);
     void move_item(const UUID& id, const UUID& parent_id);
+    void move_items(const std::vector<UUID>& ids, const UUID& parent_id, const UUID& old_parent_id);
     void rename_item(const UUID& id, const std::string& name);
     void soft_delete_item(const UUID& id);
+    void soft_delete_items(const std::vector<UUID>& ids, const UUID& old_parent_id);
     void restore_item(const UUID& id);
+    void restore_items(const std::vector<UUID>& ids, const UUID& old_parent_id);
     void delete_item(const UUID& id);
+    void delete_items(const std::vector<UUID>& ids);
     void download_thumbnails(std::int16_t event_code);
     void download_thumbnail(const UUID& id);
     void make_item_available_offline(const UUID& id);

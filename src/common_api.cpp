@@ -243,6 +243,149 @@ void api::items::get_thumbnail_download_url(CoreBase& core, const std::string& i
     });
 }
 
+void api::items::move_items_raw(CoreBase& core, const std::vector<std::string>& ids, const std::string& parent_id, const OnResponse& on_response,
+    const OnFailure& on_failure)
+{
+    std::string url = core.settings().instance_url() + "/items/move";
+    std::map<std::string, std::string> headers;
+    headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
+    nlohmann::json body;
+    body["ids"] = ids;
+    body["parent_id"] = parent_id;
+    core.network_provider().post_json(url,
+                                headers,
+                                body,
+                                on_response,
+                                on_failure);
+
+}
+
+void api::items::move_items(CoreBase& core, const std::vector<std::string>& ids, const std::string& parent_id, const OnResponse& on_response,
+                            const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, &ids, &parent_id, &on_response, &on_failure]()
+    {
+       move_items_raw(core, ids, parent_id, on_response, on_failure);
+    });
+}
+
+void api::items::move_items(CoreBase& core, const std::vector<UUID>& ids, const UUID& parent_id,
+    const OnResponse& on_response, const OnFailure& on_failure)
+{
+    std::vector<std::string> string_ids{};
+    for (const auto& id : ids) {
+        {
+            string_ids.push_back(id.to_string());
+        }
+    }
+    move_items(core, string_ids, parent_id.to_string(), on_response, on_failure);
+}
+
+void api::items::soft_delete_items_raw(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
+                                       const OnFailure& on_failure)
+{
+    std::string url = core.settings().instance_url() + "/items/trash";
+    std::map<std::string, std::string> headers;
+    headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
+    nlohmann::json body;
+    body["ids"] = ids;
+    core.network_provider().post_json(url,
+                                headers,
+                                body,
+                                on_response,
+                                on_failure);
+}
+
+void api::items::soft_delete_items(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
+                                   const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, &ids, &on_response, &on_failure]()
+    {
+       soft_delete_items_raw(core, ids, on_response, on_failure);
+    });
+}
+
+void api::items::soft_delete_items(CoreBase& core, const std::vector<UUID>& ids, const OnResponse& on_response,
+                                   const OnFailure& on_failure)
+{
+    std::vector<std::string> string_ids{};
+    for (const auto& id : ids)
+    {
+        string_ids.push_back(id.to_string());
+    }
+    soft_delete_items(core, string_ids, on_response, on_failure);
+}
+
+void api::items::restore_items_raw(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
+                                   const OnFailure& on_failure)
+{
+    std::string url = core.settings().instance_url() + "/items/restore";
+    std::map<std::string, std::string> headers;
+    headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
+    nlohmann::json body;
+    body["ids"] = ids;
+    core.network_provider().post_json(url,
+                                headers,
+                                body,
+                                on_response,
+                                on_failure);
+}
+
+void api::items::restore_items(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
+                               const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, &ids, &on_response, &on_failure]()
+    {
+       restore_items_raw(core, ids, on_response, on_failure);
+    });
+}
+
+void api::items::restore_items(CoreBase& core, const std::vector<UUID>& ids, const OnResponse& on_response,
+                               const OnFailure& on_failure)
+{
+    std::vector<std::string> string_ids{};
+    for (const auto& id : ids)
+    {
+        string_ids.push_back(id.to_string());
+    }
+    restore_items(core, string_ids, on_response, on_failure);
+}
+
+void api::items::delete_items_raw(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
+                                  const OnFailure& on_failure)
+{
+    std::string url = core.settings().instance_url() + "/items/delete";
+    std::map<std::string, std::string> headers;
+    headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
+    nlohmann::json body;
+    body["ids"] = ids;
+    core.network_provider().post_json(url,
+                                headers,
+                                body,
+                                on_response,
+                                on_failure);
+}
+
+void api::items::delete_items(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
+                              const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, &ids, &on_response, &on_failure]()
+    {
+       delete_items_raw(core, ids, on_response, on_failure);
+    });
+}
+
+void api::items::delete_items(CoreBase& core, const std::vector<UUID>& ids, const OnResponse& on_response,
+                              const OnFailure& on_failure)
+{
+    std::vector<std::string> string_ids{};
+    for (const auto& id : ids)
+    {
+        string_ids.push_back(id.to_string());
+    }
+    delete_items(core, string_ids, on_response, on_failure);
+}
+
 void api::auth::refresh(CoreBase& core, const std::function<void()>& on_success)
 {
     std::string url = core.settings().instance_url() + "/auth/refresh";

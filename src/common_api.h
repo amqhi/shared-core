@@ -80,6 +80,73 @@ namespace api
             CoreBase& core,
             const std::string& id,
             const OnResponse& on_response);
+
+        void move_items_raw(
+            CoreBase& core,
+            const std::vector<std::string>& ids,
+            const std::string& parent_id,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void move_items(
+            CoreBase& core,
+            const std::vector<std::string>& ids,
+            const std::string& parent_id,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void move_items(
+              CoreBase& core,
+              const std::vector<UUID>& ids,
+              const UUID& parent_id,
+              const OnResponse& on_response,
+              const OnFailure& on_failure);
+
+        void soft_delete_items_raw(
+            CoreBase& core,
+            const std::vector<std::string>& ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void soft_delete_items(
+            CoreBase& core,
+            const std::vector<std::string>& ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void soft_delete_items(
+            CoreBase& core,
+            const std::vector<UUID>& ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+
+        void restore_items_raw(
+            CoreBase& core,
+            const std::vector<std::string>& ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void restore_items(
+            CoreBase& core,
+            const std::vector<std::string>& ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void restore_items(
+            CoreBase& core,
+            const std::vector<UUID>& ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+
+        void delete_items_raw(
+            CoreBase& core,
+            const std::vector<std::string>& ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void delete_items(
+            CoreBase& core,
+            const std::vector<std::string>& ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void delete_items(
+            CoreBase& core,
+            const std::vector<UUID>& ids,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
     }
 
     namespace files
