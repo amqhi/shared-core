@@ -47,19 +47,9 @@ void CoreBase::on_suspend() const
     m_cached_state->save();
 }
 
-void CoreBase::on_resume()
+void CoreBase::on_resume() const
 {
-    if (token_refresh_required())
-    {
-        refresh_tokens([this]()
-        {
-            m_item_manager->sync();
-        });
-    }
-    else
-    {
-        m_item_manager->sync();
-    }
+    m_item_manager->sync();
 }
 
 void CoreBase::add_user()
@@ -115,53 +105,6 @@ void CoreBase::exchange_google_token(const std::string& id_token)
             }
             else
             {
-            }
-        }
-        , [this](std::int16_t error_code, const std::string& data)
-        {
-            handle_network_error(m_notifier, error_code, data);
-        });
-}
-
-void CoreBase::refresh_tokens(const std::function<void()>& on_complete)
-{
-    std::string url = m_settings->instance_url() + "/auth/refresh";
-    std::map<std::string, std::string> headers;
-    nlohmann::json body;
-    body["refresh_token"] = selected_user()->refresh_token;
-    m_network_provider.post_json(
-        url,
-        headers,
-        body,
-        [this, on_complete](int status_code, const std::string& response)
-        {
-            if (status_code == 200)
-            {
-                auto json = nlohmann::json::parse(response, nullptr, false);
-                if (json.is_discarded())
-                {
-                    selected_user()->access_token = "";
-                    selected_user()->refresh_token = "";
-                    m_notifier.notify(RE_LOGIN_REQUIRED);
-                }
-                else
-                {
-                    AuthTokens auth_tokens = AuthTokens::from_json(json);
-                    m_secure_storage_provider.set_secure_string(std::string_view(&m_selected_user_id, 1),
-                                                                auth_tokens.serialize());
-                    selected_user()->access_token = auth_tokens.access_token;
-                    selected_user()->refresh_token = auth_tokens.refresh_token;
-                    selected_user()->access_token_expires_at = User::calculate_expires_at(auth_tokens.expires_in);
-                }
-                on_complete();
-            }
-            else
-            {
-                selected_user()->access_token = "";
-                selected_user()->refresh_token = "";
-                m_secure_storage_provider.remove_secure_string(std::string_view(&m_selected_user_id, 1));
-                m_notifier.notify(RE_LOGIN_REQUIRED);
-                on_complete();
             }
         }
         , [this](std::int16_t error_code, const std::string& data)

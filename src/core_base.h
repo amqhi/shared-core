@@ -25,12 +25,11 @@ public:
     void destroy() const;
 
     void on_suspend() const;
-    void on_resume();
+    void on_resume() const;
 
     void add_user();
     void switch_user(char user_local_id);
     void exchange_google_token(const std::string& id_token);
-    void refresh_tokens(const std::function<void()>& on_complete);
 
     /** On first run */
     void handle_login(const std::string& instance_url, const std::string& email, const std::string& password);
