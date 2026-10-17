@@ -396,7 +396,7 @@ void api::auth::refresh(CoreBase& core, const std::function<void()>& on_success)
         url,
         headers,
         body,
-        [&core, &on_success](int status_code, const std::string& response)
+        [&core, on_success](int status_code, const std::string& response)
         {
             if (status_code == 200)
             {
