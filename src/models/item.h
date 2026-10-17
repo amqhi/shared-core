@@ -158,7 +158,7 @@ namespace item_column_index
 
 namespace item_status
 {
-    constexpr char DOWNLOADED = 'd';
+    constexpr char AVAILABLE_OFFLINE = 'a';
     constexpr char ONLINE_ONLY = 'o';
     constexpr char PENDING_UPLOAD = 'p';
 }

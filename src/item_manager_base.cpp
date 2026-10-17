@@ -171,7 +171,7 @@ void ItemManagerBase::sync()
                                                            // If the item is already exists
                                                            {
                                                                auto& existing_item = pair->second;
-                                                               if (existing_item.status == item_status::DOWNLOADED)
+                                                               if (existing_item.status == item_status::AVAILABLE_OFFLINE)
                                                                {
                                                                    const auto old_path = item_local_file_path(
                                                                        m_core, existing_item);
@@ -1404,7 +1404,7 @@ void ItemManagerBase::make_item_available_offline(const UUID& id)
         if (status_code == 200)
         {
             json data;
-            m_items[id].status = item_status::DOWNLOADED;
+            m_items[id].status = item_status::AVAILABLE_OFFLINE;
             data["id"] = id.to_string();
             data["parent_id"] = m_items[id].parent_id.to_string();
             m_core.notifier().notify(ITEM_CACHE_SUCCESS, data);
