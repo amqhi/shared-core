@@ -777,7 +777,7 @@ void ItemManagerBase::move_items(const std::vector<UUID>& ids, const UUID& paren
                 m_items[id].parent_id = parent_id;
                 m_items[id].save(m_core.database_provider().database());
             }
-            m_core.notifier().notify(ITEMS_MOVE_SUCCESS, response);
+            m_core.notifier().notify(ITEMS_MOVE_SUCCESS);
         }
         else
         {
@@ -890,7 +890,7 @@ void ItemManagerBase::soft_delete_items(const std::vector<UUID>& ids, const UUID
                 m_items[id].parent_id = special_folder::TRASH;
                 m_items[id].save(m_core.database_provider().database());
             }
-            m_core.notifier().notify(ITEMS_SOFT_DELETE_SUCCESS, response);
+            m_core.notifier().notify(ITEMS_SOFT_DELETE_SUCCESS);
         }
         else
         {
@@ -1004,7 +1004,7 @@ void ItemManagerBase::restore_items(const std::vector<UUID>& ids, const UUID& ol
                 sort_items(folder_id);
             }
 
-            m_core.notifier().notify(ITEMS_RESTORE_SUCCESS, response);
+            m_core.notifier().notify(ITEMS_RESTORE_SUCCESS);
         }
         else
         {
@@ -1088,7 +1088,7 @@ void ItemManagerBase::delete_items(const std::vector<UUID>& ids)
                     break;
                 }
             }
-            m_core.notifier().notify(ITEMS_DELETE_SUCCESS, response);
+            m_core.notifier().notify(ITEMS_DELETE_SUCCESS);
         }
         else
         {
