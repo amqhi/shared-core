@@ -968,7 +968,7 @@ void ItemManagerBase::restore_items(const std::vector<UUID>& ids, const UUID& ol
     vector_utils::subtract<UUID>(m_id_lists[old_parent_id], ids);
 
     m_core.notifier().notify(ITEMS_RESTORE_STARTED, old_parent_id.to_string());
-    api::items::soft_delete_items(m_core, ids, [this, ids, old_parent_id](int status_code, const std::string& response)
+    api::items::restore_items(m_core, ids, [this, ids, old_parent_id](int status_code, const std::string& response)
     {
         if (status_code == 200)
         {
