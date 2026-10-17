@@ -1049,7 +1049,7 @@ void ItemManagerBase::delete_item(const UUID& id)
                                                   data["id"] = id.to_string();
                                                   data["parent_id"] = parent_id.to_string();
 
-                                                  m_core.notifier().notify(ITEM_DELETED, data);
+                                                  m_core.notifier().notify(ITEM_DELETE_SUCCESS, data);
                                               }
                                               else
                                               {
@@ -1407,11 +1407,11 @@ void ItemManagerBase::make_item_available_offline(const UUID& id)
             m_items[id].status = item_status::AVAILABLE_OFFLINE;
             data["id"] = id.to_string();
             data["parent_id"] = m_items[id].parent_id.to_string();
-            m_core.notifier().notify(ITEM_CACHE_SUCCESS, data);
+            m_core.notifier().notify(ITEM_MAKE_AVAILABLE_OFFLINE_SUCCESS, data);
         }
         else
         {
-            notify_request_failure(m_core.notifier(), ITEM_CACHE_FAILURE, status_code,
+            notify_request_failure(m_core.notifier(), ITEM_MAKE_AVAILABLE_OFFLINE_FAILURE, status_code,
                                    response);
         }
     });
