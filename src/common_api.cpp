@@ -114,7 +114,7 @@ void api::items::get_thumbnail_download_url(
             const OnResponse& on_response,
             const OnFailure& on_failure)
 {
-    request_with_auto_refresh(core, [&core, id, &on_response, &on_failure]()
+    request_with_auto_refresh(core, [&core, id, on_response, on_failure]()
     {
         get_thumbnail_download_url_raw(core, id, on_response, on_failure);
     });
@@ -134,7 +134,7 @@ void api::files::get_files_raw(CoreBase& core, const OnResponse& on_response,
 void api::files::get_files(CoreBase& core, const OnResponse& on_response,
                            const OnFailure& on_failure)
 {
-    request_with_auto_refresh(core, [&core, &on_response, &on_failure]()
+    request_with_auto_refresh(core, [&core, on_response, on_failure]()
     {
         get_files_raw(core, on_response, on_failure);
     });
@@ -154,7 +154,7 @@ void api::folders::get_folders_raw(CoreBase& core, const OnResponse& on_response
 void api::folders::get_folders(CoreBase& core, const OnResponse& on_response,
                                const OnFailure& on_failure)
 {
-    request_with_auto_refresh(core, [&core, &on_response, &on_failure]()
+    request_with_auto_refresh(core, [&core, on_response, on_failure]()
     {
         get_folders_raw(core, on_response, on_failure);
     });
@@ -175,7 +175,7 @@ void api::files::get_file_metadata_raw(CoreBase& core, const std::string& id, co
 void api::files::get_file_metadata(CoreBase& core, const std::string& id, const OnResponse& on_response,
                                    const OnFailure& on_failure)
 {
-    request_with_auto_refresh(core, [&core, &id, &on_response, &on_failure]()
+    request_with_auto_refresh(core, [&core, id, on_response, on_failure]()
     {
         get_file_metadata_raw(core, id, on_response, on_failure);
     });
@@ -229,7 +229,7 @@ void api::files::get_download_url(CoreBase& core, const std::string& id,
                                   const std::function<void(std::int16_t error_code, const std::string& data)>&
                                   on_failure)
 {
-    request_with_auto_refresh(core, [&core, &id, &on_response, &on_failure]()
+    request_with_auto_refresh(core, [&core, id, on_response, on_failure]()
     {
         get_download_url_raw(core, id, on_response, on_failure);
     });
@@ -263,7 +263,7 @@ void api::items::move_items_raw(CoreBase& core, const std::vector<std::string>& 
 void api::items::move_items(CoreBase& core, const std::vector<std::string>& ids, const std::string& parent_id, const OnResponse& on_response,
                             const OnFailure& on_failure)
 {
-    request_with_auto_refresh(core, [&core, &ids, &parent_id, &on_response, &on_failure]()
+    request_with_auto_refresh(core, [&core, ids, parent_id, on_response, on_failure]()
     {
        move_items_raw(core, ids, parent_id, on_response, on_failure);
     });
@@ -299,7 +299,7 @@ void api::items::soft_delete_items_raw(CoreBase& core, const std::vector<std::st
 void api::items::soft_delete_items(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
                                    const OnFailure& on_failure)
 {
-    request_with_auto_refresh(core, [&core, &ids, &on_response, &on_failure]()
+    request_with_auto_refresh(core, [&core, ids, on_response, on_failure]()
     {
        soft_delete_items_raw(core, ids, on_response, on_failure);
     });
@@ -334,7 +334,7 @@ void api::items::restore_items_raw(CoreBase& core, const std::vector<std::string
 void api::items::restore_items(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
                                const OnFailure& on_failure)
 {
-    request_with_auto_refresh(core, [&core, &ids, &on_response, &on_failure]()
+    request_with_auto_refresh(core, [&core, ids, on_response, on_failure]()
     {
        restore_items_raw(core, ids, on_response, on_failure);
     });
@@ -369,7 +369,7 @@ void api::items::delete_items_raw(CoreBase& core, const std::vector<std::string>
 void api::items::delete_items(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
                               const OnFailure& on_failure)
 {
-    request_with_auto_refresh(core, [&core, &ids, &on_response, &on_failure]()
+    request_with_auto_refresh(core, [&core, ids, on_response, on_failure]()
     {
        delete_items_raw(core, ids, on_response, on_failure);
     });
