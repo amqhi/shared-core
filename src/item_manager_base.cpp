@@ -767,10 +767,7 @@ void ItemManagerBase::move_items(const std::vector<UUID>& ids, const UUID& paren
     m_id_lists[parent_id].insert(m_id_lists[parent_id].end(), ids.begin(), ids.end());
     sort_items(parent_id);
 
-    json data;
-    data["parent_id"] = parent_id.to_string();
-    data["old_parent_id"] = old_parent_id.to_string();
-    m_core.notifier().notify(ITEMS_MOVE_STARTED, data);
+    m_core.notifier().notify(ITEMS_MOVE_STARTED, old_parent_id.to_string());
     api::items::move_items(m_core, ids, parent_id, [this, ids, parent_id, old_parent_id](int status_code, const std::string& response)
     {
         if (status_code == 200)
@@ -882,9 +879,7 @@ void ItemManagerBase::soft_delete_items(const std::vector<UUID>& ids, const UUID
     m_id_lists[special_folder::TRASH].insert(m_id_lists[special_folder::TRASH].end(), ids.begin(), ids.end());
     sort_items(special_folder::TRASH);
 
-    json data;
-    data["old_parent_id"] = old_parent_id.to_string();
-    m_core.notifier().notify(ITEMS_SOFT_DELETE_STARTED, data);
+    m_core.notifier().notify(ITEMS_SOFT_DELETE_STARTED, old_parent_id.to_string());
     api::items::soft_delete_items(m_core, ids, [this, ids, old_parent_id](int status_code, const std::string& response)
     {
         if (status_code == 200)
@@ -972,7 +967,7 @@ void ItemManagerBase::restore_items(const std::vector<UUID>& ids, const UUID& ol
 {
     vector_utils::subtract<UUID>(m_id_lists[old_parent_id], ids);
 
-    m_core.notifier().notify(ITEMS_RESTORE_STARTED);
+    m_core.notifier().notify(ITEMS_RESTORE_STARTED, old_parent_id.to_string());
     api::items::soft_delete_items(m_core, ids, [this, ids, old_parent_id](int status_code, const std::string& response)
     {
         if (status_code == 200)
