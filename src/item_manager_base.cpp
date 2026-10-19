@@ -260,6 +260,7 @@ void ItemManagerBase::sync()
 }
 
 // TODO: Handle paginated items during refresh
+/// Fetch each item type or thumbnails in order and save it locally. The next step starts after the current request finishes.
 void ItemManagerBase::refresh()
 {
     refresh_phase1_files();
