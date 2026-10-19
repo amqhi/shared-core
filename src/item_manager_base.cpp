@@ -221,14 +221,14 @@ void ItemManagerBase::sync()
                                                            {
                                                                notify_request_failure(
                                                                    m_core.notifier(),
-                                                                   ACKNOWLEDGE_SYNC_EVENTS_FETCH_FAILURE,
+                                                                   SYNC_EVENTS_ACKNOWLEDGE_FAILURE,
                                                                    status_code, response);
                                                            }
                                                        }, [this](int error_code,
                                                                  const std::string& data)
                                                        {
                                                            notify_request_failure(
-                                                               m_core.notifier(), ACKNOWLEDGE_SYNC_EVENTS_FETCH_FAILURE,
+                                                               m_core.notifier(), SYNC_EVENTS_ACKNOWLEDGE_FAILURE,
                                                                error_code, data);
                                                        });
                                                }

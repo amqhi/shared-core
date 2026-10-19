@@ -73,7 +73,7 @@ constexpr std::int16_t FETCH_FOLDERS_FAILURE          = 1209;
 constexpr std::int16_t SYNC_STARTED                   = 1300;
 constexpr std::int16_t SYNC_SUCCESS                   = 1301;
 constexpr std::int16_t SYNC_EVENTS_FETCH_FAILURE      = 1302;
-constexpr std::int16_t ACKNOWLEDGE_SYNC_EVENTS_FETCH_FAILURE = 1303;
+constexpr std::int16_t SYNC_EVENTS_ACKNOWLEDGE_FAILURE = 1303;
 
 // -----------------------------------------------------------------------------
 // General Errors (1900 ~ 1999)
