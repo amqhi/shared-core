@@ -3,6 +3,8 @@
 #define SHARED_CORE_JAVA_UUID_H
 
 #include <jni.h>
+#include "uuid.h"
+#include <vector>
 
 struct JUUID
 {
@@ -27,5 +29,26 @@ struct JUUID
         return value;
     }
 };
+
+namespace java_uuid
+{
+    inline std::vector<UUID> vector_from_jlongArray(JNIEnv* env, jlongArray ids)
+    {
+        jsize length = env->GetArrayLength(ids);
+        jlong* elements = env->GetLongArrayElements(ids, nullptr);
+        if (elements != nullptr) {
+            std::vector<UUID> result;
+            for (jsize i = 0; i + 1 < length; i += 2) {
+                UUID id{};
+                id.high = static_cast<std::uint64_t>(elements[i]);
+                id.low = static_cast<std::uint64_t>(elements[i + 1]);
+                result.push_back(id);
+            }
+            env->ReleaseLongArrayElements(ids, elements, JNI_ABORT);
+            return result;
+        }
+        return {};
+    }
+}
 
 #endif //SHARED_CORE_JAVA_UUID_H
