@@ -8,13 +8,13 @@
 #include <string>
 
 #include "auth_tokens.h"
+#include "network_provider_base.h"
 
 struct FileMetadata;
 class CoreBase;
 struct UUID;
 struct SyncEvent;
-class INetworkProviderBase;
-using OnResponse = std::function<void(int status_code, const std::string& response)>;
+using OnResponse = std::function<void(const amqhi::HttpResponse& response)>;
 using OnFailure = std::function<void(std::int16_t error_code, const std::string& data)>;
 
 namespace api
@@ -180,13 +180,13 @@ namespace api
         void get_download_url_raw(
             CoreBase& core,
             const std::string& id,
-            const std::function<void(int status_code, const std::string& response)>& on_response,
+            const std::function<void(const amqhi::HttpResponse& response)>& on_response,
             const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
         );
         void get_download_url(
             CoreBase& core,
             const std::string& id,
-            const std::function<void(int status_code, const std::string& response)>& on_response,
+            const std::function<void(const amqhi::HttpResponse& response)>& on_response,
             const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
         );
     }

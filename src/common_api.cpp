@@ -192,11 +192,11 @@ void api::files::get_file_metadata(CoreBase& core, const std::string& id, const 
 void api::files::get_file_metadata(CoreBase& core, const std::string& id,
                                    const std::function<void(FileMetadata& file_metadata)>& on_success)
 {
-    get_file_metadata(core, id, [on_success](int status_code, const std::string& response)
+    get_file_metadata(core, id, [on_success](const amqhi::HttpResponse& response)
     {
-        if (status_code == 200)
+        if (response.status_code == 200)
         {
-            auto body = nlohmann::json::parse(response, nullptr, false);
+            auto body = nlohmann::json::parse(response.body, nullptr, false);
             if (!body.is_discarded())
             {
                 FileMetadata file_metadata;
@@ -211,7 +211,7 @@ void api::files::get_file_metadata(CoreBase& core, const std::string& id,
 }
 
 void api::files::get_download_url_raw(CoreBase& core, const std::string& id,
-                                  const std::function<void(int status_code, const std::string& response)>& on_response,
+                                  const std::function<void(const amqhi::HttpResponse& response)>& on_response,
                                   const std::function<void(std::int16_t error_code, const std::string& data)>&
                                   on_failure)
 {
@@ -225,7 +225,7 @@ void api::files::get_download_url_raw(CoreBase& core, const std::string& id,
 }
 
 void api::files::get_download_url(CoreBase& core, const std::string& id,
-                                  const std::function<void(int status_code, const std::string& response)>& on_response,
+                                  const std::function<void(const amqhi::HttpResponse& response)>& on_response,
                                   const std::function<void(std::int16_t error_code, const std::string& data)>&
                                   on_failure)
 {
@@ -396,11 +396,11 @@ void api::auth::refresh(CoreBase& core, const std::function<void()>& on_success)
         url,
         headers,
         body,
-        [&core, on_success](int status_code, const std::string& response)
+        [&core, on_success](const amqhi::HttpResponse& response)
         {
-            if (status_code == 200)
+            if (response.status_code == 200)
             {
-                auto json = nlohmann::json::parse(response, nullptr, false);
+                auto json = nlohmann::json::parse(response.body, nullptr, false);
                 if (json.is_discarded())
                 {
                     core.selected_user()->access_token = "";

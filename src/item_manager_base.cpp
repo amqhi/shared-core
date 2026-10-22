@@ -22,6 +22,7 @@
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
+using Response = amqhi::HttpResponse;
 
 ItemManagerBase::ItemManagerBase(CoreBase& core) : m_core(core)
 {
@@ -104,11 +105,11 @@ void ItemManagerBase::initialize()
 void ItemManagerBase::sync()
 {
     m_core.notifier().notify(SYNC_STARTED);
-    api::sync::get_sync_events(m_core, [this](int status_code, const std::string& response)
+    api::sync::get_sync_events(m_core, [this](const Response& response)
                                {
-                                   if (status_code == 200)
+                                   if (response.status_code == 200)
                                    {
-                                       nlohmann::json body = nlohmann::json::parse(response, nullptr, false);
+                                       nlohmann::json body = nlohmann::json::parse(response.body, nullptr, false);
                                        if (!body.is_discarded())
                                        {
                                            if (auto it = body.find("events"); it != body.end() && it->is_array())
@@ -214,15 +215,14 @@ void ItemManagerBase::sync()
                                                if (!item_ids.empty())
                                                {
                                                    api::sync::acknowledge_events(m_core, item_ids,
-                                                       [this](int status_code,
-                                                              const std::string& response)
+                                                       [this](const Response& response)
                                                        {
-                                                           if (status_code != 200)
+                                                           if (response.status_code != 200)
                                                            {
                                                                notify_request_failure(
                                                                    m_core.notifier(),
                                                                    SYNC_EVENTS_ACKNOWLEDGE_FAILURE,
-                                                                   status_code, response);
+                                                                   response.status_code, response.body);
                                                            }
                                                        }, [this](int error_code,
                                                                  const std::string& data)
@@ -245,13 +245,13 @@ void ItemManagerBase::sync()
                                        else
                                        {
                                            notify_request_failure(m_core.notifier(), SYNC_EVENTS_FETCH_FAILURE,
-                                                                  status_code, response);
+                                                                  response.status_code, response.body);
                                        }
                                    }
                                    else
                                    {
-                                       notify_request_failure(m_core.notifier(), SYNC_EVENTS_FETCH_FAILURE, status_code,
-                                                              response);
+                                       notify_request_failure(m_core.notifier(), SYNC_EVENTS_FETCH_FAILURE, response.status_code,
+                                                              response.body);
                                    }
                                }, [this](std::int16_t error_code, const std::string& data)
                                {
@@ -392,11 +392,11 @@ void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const s
                                             headers,
                                             body,
                                             [this, tmp_file_path, checksum, size, mime_type, url](
-                                            int status_code, const std::string& response)
+                                            const Response& response)
                                             {
-                                                if (status_code == 201)
+                                                if (response.status_code == 201)
                                                 {
-                                                    auto body = json::parse(response, nullptr, false);
+                                                    auto body = json::parse(response.body, nullptr, false);
                                                     if (!body.is_discarded() && body.contains("item") &&
                                                         body["item"].is_object() &&
                                                         body.contains("upload") && body["upload"].is_object())
@@ -426,12 +426,11 @@ void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const s
                                                                 task_info,
                                                                 [this, checksum, size, item, mime_type, upload_id,
                                                                     completed_parts](
-                                                                int status_code,
-                                                                const std::string& response)
+                                                                const Response& response)
                                                                 {
                                                                     auto parts_json = json::parse(
-                                                                        response, nullptr, false);
-                                                                    if (status_code == 200)
+                                                                        response.body, nullptr, false);
+                                                                    if (response.status_code == 200)
                                                                     {
                                                                         complete_upload_multipart(
                                                                             item, checksum, size,
@@ -443,8 +442,8 @@ void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const s
                                                                         notify_request_failure(
                                                                             m_core.notifier(),
                                                                             ITEM_CREATE_FAILURE,
-                                                                            status_code,
-                                                                            response);
+                                                                            response.status_code,
+                                                                            response.body);
                                                                     }
                                                                 }
                                                                 , [this](std::int16_t error_code,
@@ -473,10 +472,9 @@ void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const s
                                                                 tmp_file_path,
                                                                 task_info,
                                                                 [this, checksum, size, mime_type, item, upload_url](
-                                                                int status_code,
-                                                                const std::string& response)
+                                                                const Response& response)
                                                                 {
-                                                                    if (status_code == 200)
+                                                                    if (response.status_code == 200)
                                                                     {
                                                                         complete_upload(item, checksum,
                                                                             size, mime_type);
@@ -486,8 +484,8 @@ void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const s
                                                                         notify_request_failure(
                                                                             m_core.notifier(),
                                                                             ITEM_CREATE_FAILURE,
-                                                                            status_code,
-                                                                            response, upload_url);
+                                                                            response.status_code,
+                                                                            response.body, upload_url);
                                                                     }
                                                                 }
                                                                 , [this](std::int16_t error_code,
@@ -501,23 +499,23 @@ void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const s
                                                         {
                                                             notify_request_failure(m_core.notifier(),
                                                                 ITEM_CREATE_FAILURE,
-                                                                status_code,
-                                                                response, url);
+                                                                response.status_code,
+                                                                response.body, url);
                                                         }
                                                     }
                                                     else
                                                     {
                                                         notify_request_failure(m_core.notifier(),
                                                                                ITEM_CREATE_FAILURE,
-                                                                               status_code,
-                                                                               response, url);
+                                                                               response.status_code,
+                                                                               response.body, url);
                                                     }
                                                 }
                                                 else
                                                 {
                                                     notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
-                                                                           status_code,
-                                                                           response);
+                                                                           response.status_code,
+                                                                           response.body);
                                                 }
                                             }, [this](std::int16_t error_code, const std::string& data)
                                             {
@@ -540,11 +538,11 @@ void ItemManagerBase::create_folder(const ItemAttributes& item_attributes)
                                             headers,
                                             body,
                                             [this, url](
-                                            int status_code, const std::string& response)
+                                            const Response& response)
                                             {
-                                                if (status_code == 201)
+                                                if (response.status_code == 201)
                                                 {
-                                                    auto body = json::parse(response, nullptr, false);
+                                                    auto body = json::parse(response.body, nullptr, false);
                                                     if (!body.is_discarded())
                                                     {
                                                         Item item = item_from_json(body);
@@ -563,8 +561,8 @@ void ItemManagerBase::create_folder(const ItemAttributes& item_attributes)
                                                 else
                                                 {
                                                     notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
-                                                                           status_code,
-                                                                           response, url);
+                                                                           response.status_code,
+                                                                           response.body, url);
                                                 }
                                             }, [](std::int16_t error_code, const std::string& data)
                                             {
@@ -592,9 +590,9 @@ void ItemManagerBase::complete_upload_multipart(const Item& item, const std::str
                                             headers,
                                             body,
                                             [this, item, checksum, mime_type, size](
-                                            int status_code, const std::string& response)
+                                            const Response& response)
                                             {
-                                                if (status_code == 200)
+                                                if (response.status_code == 200)
                                                 {
                                                     FileMetadata file_metadata;
                                                     file_metadata.id = item.id;
@@ -615,8 +613,8 @@ void ItemManagerBase::complete_upload_multipart(const Item& item, const std::str
                                                 else
                                                 {
                                                     notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
-                                                                           status_code,
-                                                                           response);
+                                                                           response.status_code,
+                                                                           response.body);
                                                 }
                                             }, [](std::int16_t error_code, const std::string& data)
                                             {
@@ -641,9 +639,9 @@ void ItemManagerBase::complete_upload(const Item& item, const std::string& check
                                             headers,
                                             body,
                                             [this, item, checksum, mime_type, size](
-                                            int status_code, const std::string& response)
+                                            const Response& response)
                                             {
-                                                if (status_code == 200)
+                                                if (response.status_code == 200)
                                                 {
                                                     FileMetadata file_metadata;
                                                     file_metadata.id = item.id;
@@ -664,8 +662,8 @@ void ItemManagerBase::complete_upload(const Item& item, const std::string& check
                                                 else
                                                 {
                                                     notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
-                                                                           status_code,
-                                                                           response);
+                                                                           response.status_code,
+                                                                           response.body);
                                                 }
                                             }, [this](std::int16_t error_code, const std::string& data)
                                             {
@@ -687,9 +685,9 @@ void ItemManagerBase::update_item(const UUID& id, const ItemAttributes& item_att
         m_core.network_provider().patch_json(url,
                                              headers,
                                              body,
-                                             [this, id, item_attributes](int status_code, const std::string& response)
+                                             [this, id, item_attributes](const Response& response)
                                              {
-                                                 if (status_code == 200)
+                                                 if (response.status_code == 200)
                                                  {
                                                      m_items[id].name = item_attributes.name;
                                                      m_items[id].parent_id = item_attributes.parent_id;
@@ -707,8 +705,8 @@ void ItemManagerBase::update_item(const UUID& id, const ItemAttributes& item_att
                                                  else
                                                  {
                                                      nlohmann::json args;
-                                                     args["status_code"] = status_code;
-                                                     args["response"] = response;
+                                                     args["status_code"] = response.status_code;
+                                                     args["response"] = response.body;
                                                      m_core.notifier().notify(ITEM_UPDATE_FAILURE, args);
                                                  }
                                              }, [this](std::int16_t error_code, const std::string& data)
@@ -734,9 +732,9 @@ void ItemManagerBase::move_item(const UUID& id, const UUID& parent_id)
         m_core.network_provider().patch_json(url,
                                              headers,
                                              body,
-                                             [this, id, parent_id](int status_code, const std::string& response)
+                                             [this, id, parent_id](const Response& response)
                                              {
-                                                 if (status_code == 200)
+                                                 if (response.status_code == 200)
                                                  {
                                                      UUID old_parent_id = m_items[id].parent_id;
                                                      json data;
@@ -751,8 +749,8 @@ void ItemManagerBase::move_item(const UUID& id, const UUID& parent_id)
                                                  else
                                                  {
                                                      nlohmann::json args;
-                                                     args["status_code"] = status_code;
-                                                     args["response"] = response;
+                                                     args["status_code"] = response.status_code;
+                                                     args["response"] = response.body;
                                                      m_core.notifier().notify(ITEM_MOVE_FAILURE, args);
                                                  }
                                              }, [this](std::int16_t error_code, const std::string& data)
@@ -769,9 +767,9 @@ void ItemManagerBase::move_items(const std::vector<UUID>& ids, const UUID& paren
     sort_items(parent_id);
 
     m_core.notifier().notify(ITEMS_MOVE_STARTED, old_parent_id.to_string());
-    api::items::move_items(m_core, ids, parent_id, [this, ids, parent_id, old_parent_id](int status_code, const std::string& response)
+    api::items::move_items(m_core, ids, parent_id, [this, ids, parent_id, old_parent_id](const Response& response)
     {
-        if (status_code == 200)
+        if (response.status_code == 200)
         {
             for (const auto& id : ids)
             {
@@ -786,7 +784,7 @@ void ItemManagerBase::move_items(const std::vector<UUID>& ids, const UUID& paren
             vector_utils::subtract<UUID>(m_id_lists[parent_id], ids);
             m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
             sort_items(old_parent_id);
-            m_core.notifier().notify(ITEMS_MOVE_FAILURE, response);
+            m_core.notifier().notify(ITEMS_MOVE_FAILURE, response.body);
         }
     }, [this, ids, parent_id, old_parent_id](std::int16_t error_code, const std::string& data)
                            {
@@ -811,9 +809,9 @@ void ItemManagerBase::rename_item(const UUID& id, const std::string& name)
         m_core.network_provider().patch_json(url,
                                              headers,
                                              body,
-                                             [this, id, name](int status_code, const std::string& response)
+                                             [this, id, name](const Response& response)
                                              {
-                                                 if (status_code == 200)
+                                                 if (response.status_code == 200)
                                                  {
                                                      nlohmann::json data;
                                                      m_items[id].name = name;
@@ -825,8 +823,8 @@ void ItemManagerBase::rename_item(const UUID& id, const std::string& name)
                                                  else
                                                  {
                                                      nlohmann::json args;
-                                                     args["status_code"] = status_code;
-                                                     args["response"] = response;
+                                                     args["status_code"] = response.status_code;
+                                                     args["response"] = response.body;
                                                      m_core.notifier().notify(ITEM_UPDATE_FAILURE, args);
                                                  }
                                              }, [](std::int16_t error_code, const std::string& data)
@@ -846,9 +844,9 @@ void ItemManagerBase::soft_delete_item(const UUID& id)
 
         m_core.network_provider().destroy(url,
                                           headers,
-                                          [this, id](int status_code, const std::string& response)
+                                          [this, id](const Response& response)
                                           {
-                                              if (status_code == 200)
+                                              if (response.status_code == 200)
                                               {
                                                   UUID old_parent_id = m_items[id].parent_id;
                                                   m_items[id].deleted_at = current_date_time_utc_int64();
@@ -864,8 +862,8 @@ void ItemManagerBase::soft_delete_item(const UUID& id)
                                               else
                                               {
                                                   notify_request_failure(m_core.notifier(), ITEM_SOFT_DELETE_FAILURE,
-                                                                         status_code,
-                                                                         response);
+                                                                         response.status_code,
+                                                                         response.body);
                                               }
                                           }, [this](std::int16_t error_code, const std::string& data)
                                           {
@@ -881,9 +879,9 @@ void ItemManagerBase::soft_delete_items(const std::vector<UUID>& ids, const UUID
     sort_items(special_folder::TRASH);
 
     m_core.notifier().notify(ITEMS_SOFT_DELETE_STARTED, old_parent_id.to_string());
-    api::items::soft_delete_items(m_core, ids, [this, ids, old_parent_id](int status_code, const std::string& response)
+    api::items::soft_delete_items(m_core, ids, [this, ids, old_parent_id](const Response& response)
     {
-        if (status_code == 200)
+        if (response.status_code == 200)
         {
             for (const auto& id : ids)
             {
@@ -899,7 +897,7 @@ void ItemManagerBase::soft_delete_items(const std::vector<UUID>& ids, const UUID
             vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
             m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
             sort_items(old_parent_id);
-            m_core.notifier().notify(ITEMS_SOFT_DELETE_FAILURE, response);
+            m_core.notifier().notify(ITEMS_SOFT_DELETE_FAILURE, response.body);
         }
     }, [this, ids, old_parent_id](std::int16_t error_code, const std::string& data)
                            {
@@ -923,12 +921,12 @@ void ItemManagerBase::restore_item(const UUID& id)
         m_core.network_provider().patch_json(url,
                                              headers,
                                              body,
-                                             [this, id](int status_code, const std::string& response)
+                                             [this, id](const Response& response)
                                              {
-                                                 if (status_code == 200)
+                                                 if (response.status_code == 200)
                                                  {
                                                      UUID old_parent_id = m_items[id].parent_id;
-                                                     nlohmann::json body = json::parse(response, nullptr, false);
+                                                     nlohmann::json body = json::parse(response.body, nullptr, false);
                                                      m_items[id].deleted_at = std::nullopt;
                                                      if (auto it = body.find("parent_id"); it != body.end() && it->
                                                          is_string())
@@ -953,8 +951,8 @@ void ItemManagerBase::restore_item(const UUID& id)
                                                  else
                                                  {
                                                      std::map<std::string, std::string> args;
-                                                     args["status_code"] = std::to_string(status_code);
-                                                     args["response"] = response;
+                                                     args["status_code"] = std::to_string(response.status_code);
+                                                     args["response"] = response.body;
                                                      m_core.notifier().notify(ITEM_RESTORE_FAILURE, args);
                                                  }
                                              }, [this](std::int16_t error_code, const std::string& data)
@@ -969,23 +967,23 @@ void ItemManagerBase::restore_items(const std::vector<UUID>& ids, const UUID& ol
     vector_utils::subtract<UUID>(m_id_lists[old_parent_id], ids);
 
     m_core.notifier().notify(ITEMS_RESTORE_STARTED, old_parent_id.to_string());
-    api::items::restore_items(m_core, ids, [this, ids, old_parent_id](int status_code, const std::string& response)
+    api::items::restore_items(m_core, ids, [this, ids, old_parent_id](const Response& response)
     {
-        if (status_code == 200)
+        if (response.status_code == 200)
         {
-            json body = json::parse(response, nullptr, false);
+            json body = json::parse(response.body, nullptr, false);
             if (body.is_discarded())
             {
                 m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
        sort_items(old_parent_id);
-                m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response);
+                m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response.body);
                 return;
             }
             if (!body.is_array())
             {
                 m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
        sort_items(old_parent_id);
-                m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response);
+                m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response.body);
         return;
             }
 
@@ -1012,7 +1010,7 @@ void ItemManagerBase::restore_items(const std::vector<UUID>& ids, const UUID& ol
             // rollback to previous state
             m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
             sort_items(old_parent_id);
-            m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response);
+            m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response.body);
         }
     }, [this, ids, old_parent_id](std::int16_t error_code, const std::string& data)
                            {
@@ -1034,9 +1032,9 @@ void ItemManagerBase::delete_item(const UUID& id)
 
         m_core.network_provider().destroy(url,
                                           headers,
-                                          [this, id](int status_code, const std::string& response)
+                                          [this, id](const Response& response)
                                           {
-                                              if (status_code == 200)
+                                              if (response.status_code == 200)
                                               {
                                                   UUID parent_id = m_items[id].parent_id;
                                                   item_delete_on_local(m_core, m_items[id]);
@@ -1055,8 +1053,8 @@ void ItemManagerBase::delete_item(const UUID& id)
                                               else
                                               {
                                                   std::map<std::string, std::string> args;
-                                                  args["status_code"] = std::to_string(status_code);
-                                                  args["response"] = response;
+                                                  args["status_code"] = std::to_string(response.status_code);
+                                                  args["response"] = response.body;
                                                   m_core.notifier().notify(ITEM_DELETE_FAILURE, args);
                                               }
                                           }, [](std::int16_t error_code, const std::string& data)
@@ -1070,9 +1068,9 @@ void ItemManagerBase::delete_items(const std::vector<UUID>& ids)
     vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
 
     m_core.notifier().notify(ITEMS_DELETE_STARTED);
-    api::items::soft_delete_items(m_core, ids, [this, ids](int status_code, const std::string& response)
+    api::items::soft_delete_items(m_core, ids, [this, ids](const Response& response)
     {
-        if (status_code == 200)
+        if (response.status_code == 200)
         {
             for (const auto& id : ids)
             {
@@ -1096,7 +1094,7 @@ void ItemManagerBase::delete_items(const std::vector<UUID>& ids)
             // rollback to previous state
             m_id_lists[special_folder::TRASH].insert(m_id_lists[special_folder::TRASH].end(), ids.begin(), ids.end());
             sort_items(special_folder::TRASH);
-            m_core.notifier().notify(ITEMS_DELETE_FAILURE, response);
+            m_core.notifier().notify(ITEMS_DELETE_FAILURE, response.body);
         }
     }, [this, ids](std::int16_t error_code, const std::string& data)
                            {
@@ -1155,16 +1153,16 @@ void ItemManagerBase::download_next_thumbnail(std::size_t index, std::int16_t ev
         const auto& id = m_thumbnail_downloading_ids->at(index);
         api::items::get_thumbnail_download_url(m_core, id.to_string(),
                                                [this, id, index, event_code](
-                                               int status_code, const std::string& response)
+                                               const Response& response)
                                                {
                                                    fs::path thumbnail_path = item_thumbnail_path(m_core, id);
                                                    if (!fs::exists(thumbnail_path.parent_path()))
                                                    {
                                                        fs::create_directories(thumbnail_path.parent_path());
                                                    }
-                                                   if (status_code == 200)
+                                                   if (response.status_code == 200)
                                                    {
-                                                       const std::string& download_url = response;
+                                                       const std::string& download_url = response.body;
                                                        std::map<std::string, std::string> headers;
                                                        nlohmann::json task_info;
                                                        task_info["type"] = transfer_type::THUMBNAIL;
@@ -1176,7 +1174,7 @@ void ItemManagerBase::download_next_thumbnail(std::size_t index, std::int16_t ev
                                                            thumbnail_path.string(),
                                                            task_info,
                                                            [this, index, event_code](
-                                                           int status_code, const std::string& response)
+                                                           const Response& response)
                                                            {
                                                                download_next_thumbnail(index + 1, event_code);
                                                            }, [this, index, event_code](
@@ -1188,8 +1186,8 @@ void ItemManagerBase::download_next_thumbnail(std::size_t index, std::int16_t ev
                                                    else
                                                    {
                                                        nlohmann::json data;
-                                                       data["status_code"] = status_code;
-                                                       data["response"] = response;
+                                                       data["status_code"] = response.status_code;
+                                                       data["response"] = response.body;
                                                        data["id"] = id.to_string();
                                                        m_core.notifier().notify(ITEM_THUMBNAIL_DOWNLOAD_FAILURE, data);
                                                        download_next_thumbnail(index + 1, event_code);
@@ -1206,15 +1204,15 @@ void ItemManagerBase::refresh_phase1_files()
 {
     api::request_with_auto_refresh(m_core, [this]()
     {
-        api::files::get_files(m_core, [this](int status_code, const std::string& response)
+        api::files::get_files(m_core, [this](const Response& response)
                               {
-                                  if (status_code == 200)
+                                  if (response.status_code == 200)
                                   {
-                                      auto files_body = json::parse(response, nullptr, false);
+                                      auto files_body = json::parse(response.body, nullptr, false);
                                       if (files_body.is_discarded() || !files_body.is_object())
                                       {
-                                          notify_request_failure(m_core.notifier(), REFRESH_FAILURE, status_code,
-                                                                 response);
+                                          notify_request_failure(m_core.notifier(), REFRESH_FAILURE, response.status_code,
+                                                                 response.body);
                                       }
                                       else
                                       {
@@ -1253,8 +1251,8 @@ void ItemManagerBase::refresh_phase1_files()
                                   }
                                   else
                                   {
-                                      notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE, status_code,
-                                                             response);
+                                      notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE, response.status_code,
+                                                             response.body);
                                       refresh_phase2_folders();
                                   }
                               }, [this](std::int16_t error_code, const std::string& data)
@@ -1269,19 +1267,19 @@ void ItemManagerBase::refresh_phase2_folders()
 {
     api::request_with_auto_refresh(m_core, [this]()
     {
-        api::folders::get_folders(m_core, [this](int status_code, const std::string& response)
+        api::folders::get_folders(m_core, [this](const Response& response)
                                   {
-                                      if (status_code == 200)
+                                      if (response.status_code == 200)
                                       {
                                           auto folders_body = json::parse(
-                                              response, nullptr, false);
+                                              response.body, nullptr, false);
                                           if (folders_body.is_discarded() || !folders_body.
                                               is_object())
                                           {
                                               notify_request_failure(
                                                   m_core.notifier(),
-                                                  REFRESH_FAILURE, status_code,
-                                                  response);
+                                                  REFRESH_FAILURE, response.status_code,
+                                                  response.body);
                                           }
                                           else
                                           {
@@ -1328,7 +1326,7 @@ void ItemManagerBase::refresh_phase2_folders()
                                       {
                                           notify_request_failure(
                                               m_core.notifier(), FETCH_FOLDERS_FAILURE,
-                                              status_code, response);
+                                              response.status_code, response.body);
                                       }
                                   }, [this](std::int16_t error_code,
                                             const std::string& data)
@@ -1342,16 +1340,16 @@ void ItemManagerBase::refresh_phase2_folders()
 void ItemManagerBase::download_thumbnail(const UUID& id)
 {
     api::items::get_thumbnail_download_url(m_core, id.to_string(),
-                                           [this, id](int status_code, const std::string& response)
+                                           [this, id](const Response& response)
                                            {
                                                fs::path thumbnail_path = item_thumbnail_path(m_core, id);
                                                if (!fs::exists(thumbnail_path.parent_path()))
                                                {
                                                    fs::create_directories(thumbnail_path.parent_path());
                                                }
-                                               if (status_code == 200)
+                                               if (response.status_code == 200)
                                                {
-                                                   const std::string& download_url = response;
+                                                   const std::string& download_url = response.body;
                                                    std::map<std::string, std::string> headers;
                                                    nlohmann::json task_info;
                                                    task_info["type"] = transfer_type::THUMBNAIL;
@@ -1363,9 +1361,9 @@ void ItemManagerBase::download_thumbnail(const UUID& id)
                                                        thumbnail_path.string(),
                                                        task_info,
                                                        [this, id, download_url](
-                                                       int status_code, const std::string& response)
+                                                       const Response& response)
                                                        {
-                                                           if (status_code == 200)
+                                                           if (response.status_code == 200)
                                                            {
                                                                m_core.notifier().
                                                                       notify(ITEM_THUMBNAIL_DOWNLOAD_SUCCESS);
@@ -1373,8 +1371,8 @@ void ItemManagerBase::download_thumbnail(const UUID& id)
                                                            else
                                                            {
                                                                nlohmann::json data;
-                                                               data["status_code"] = status_code;
-                                                               data["response"] = response;
+                                                               data["status_code"] = response.status_code;
+                                                               data["response"] = response.body;
                                                                data["id"] = id.to_string();
                                                                data["url"] = download_url;
                                                                m_core.notifier().notify(
@@ -1387,8 +1385,8 @@ void ItemManagerBase::download_thumbnail(const UUID& id)
                                                else
                                                {
                                                    nlohmann::json data;
-                                                   data["status_code"] = status_code;
-                                                   data["response"] = response;
+                                                   data["status_code"] = response.status_code;
+                                                   data["response"] = response.body;
                                                    data["id"] = id.to_string();
                                                    m_core.notifier().notify(ITEM_THUMBNAIL_DOWNLOAD_FAILURE, data);
                                                }
@@ -1400,9 +1398,9 @@ void ItemManagerBase::download_thumbnail(const UUID& id)
 void ItemManagerBase::make_item_available_offline(const UUID& id)
 {
     std::string file_path = item_local_file_path(m_core, m_items[id]).string();
-    download_item(id, file_path, [this, id](int status_code, const std::string& response)
+    download_item(id, file_path, [this, id](const Response& response)
     {
-        if (status_code == 200)
+        if (response.status_code == 200)
         {
             json data;
             m_items[id].status = item_status::AVAILABLE_OFFLINE;
@@ -1412,8 +1410,8 @@ void ItemManagerBase::make_item_available_offline(const UUID& id)
         }
         else
         {
-            notify_request_failure(m_core.notifier(), ITEM_MAKE_AVAILABLE_OFFLINE_FAILURE, status_code,
-                                   response);
+            notify_request_failure(m_core.notifier(), ITEM_MAKE_AVAILABLE_OFFLINE_FAILURE, response.status_code,
+                                   response.body);
         }
     });
 }
@@ -1422,9 +1420,9 @@ void ItemManagerBase::download_item(const UUID& id, const std::string& file_path
 {
     api::request_with_auto_refresh(m_core, [this, id, &file_path]()
     {
-        download_item(id, file_path, [this, id](int status_code, const std::string& response)
+        download_item(id, file_path, [this, id](const Response& response)
         {
-            if (status_code == 200)
+            if (response.status_code == 200)
             {
                 nlohmann::json data;
                 data["id"] = id.to_string();
@@ -1433,15 +1431,15 @@ void ItemManagerBase::download_item(const UUID& id, const std::string& file_path
             }
             else
             {
-                notify_request_failure(m_core.notifier(), FILE_DOWNLOAD_FAILURE, status_code,
-                                       response);
+                notify_request_failure(m_core.notifier(), FILE_DOWNLOAD_FAILURE, response.status_code,
+                                       response.body);
             }
         });
     });
 }
 
 void ItemManagerBase::download_item(const UUID& id, const std::string& file_path,
-                                    const std::function<void(int status_code, const std::string& response)>&
+                                    const std::function<void(const Response& response)>&
                                     on_response)
 {
     api::request_with_auto_refresh(m_core, [this, id, &file_path, &on_response]()
@@ -1449,11 +1447,11 @@ void ItemManagerBase::download_item(const UUID& id, const std::string& file_path
         api::files::get_download_url(
             m_core,
             id.to_string(),
-            [this, id, file_path, on_response](int status_code, const std::string& response)
+            [this, id, file_path, on_response](const Response& response)
             {
-                if (status_code == 200)
+                if (response.status_code == 200)
                 {
-                    const std::string& download_url = response;
+                    const std::string& download_url = response.body;
                     std::map<std::string, std::string> headers;
                     nlohmann::json task_info;
                     task_info["id"] = id.to_string();
@@ -1468,8 +1466,8 @@ void ItemManagerBase::download_item(const UUID& id, const std::string& file_path
                 }
                 else
                 {
-                    notify_request_failure(m_core.notifier(), FILE_DOWNLOAD_FAILURE, status_code,
-                                           response);
+                    notify_request_failure(m_core.notifier(), FILE_DOWNLOAD_FAILURE, response.status_code,
+                                           response.body);
                 }
             },
             [this](std::int16_t error_code, const std::string& data)
@@ -1483,11 +1481,11 @@ void ItemManagerBase::fetch_file_download_url(const UUID& id) const
 {
     api::request_with_auto_refresh(m_core, [this, id]()
     {
-        api::files::get_download_url(m_core, id.to_string(), [this, id](int status_code, const std::string& response)
+        api::files::get_download_url(m_core, id.to_string(), [this, id](const Response& response)
                                      {
-                                         if (status_code == 200)
+                                         if (response.status_code == 200)
                                          {
-                                             const std::string& download_url = response;
+                                             const std::string& download_url = response.body;
                                              json data;
                                              data["id"] = id.to_string();
                                              data["url"] = download_url;

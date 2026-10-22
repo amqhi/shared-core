@@ -81,6 +81,9 @@ constexpr std::int16_t SYNC_EVENTS_ACKNOWLEDGE_FAILURE = 1303;
 constexpr std::int16_t DATABASE_ERROR                 = 1900;
 constexpr std::int16_t NETWORK_CONNECTION_FAILURE    = 1901;
 constexpr std::int16_t RESOURCE_BUSY                  = 1902;
+constexpr std::int16_t FILE_CREATE_FAILURE               = 1903;
+constexpr std::int16_t FILE_READ_FAILURE                 = 1904;
+constexpr std::int16_t FILE_WRITE_FAILURE                 = 1905;
 
 class INotifierBase
 {

@@ -11,6 +11,7 @@
 #include "json.hpp"
 
 #include "item_attributes.h"
+#include "network_provider_base.h"
 
 class CoreBase;
 class INetworkProvider;
@@ -54,7 +55,7 @@ class ItemManagerBase
     void make_item_available_offline(const UUID& id);
     void download_item(const UUID& id, const std::string& file_path);
     void download_item(const UUID& id, const std::string& file_path,
-                       const std::function<void(int status_code, const std::string& response)>& on_response);
+                       const std::function<void(const amqhi::HttpResponse& response)>& on_response);
     void fetch_file_download_url(const UUID& id) const;
 
 protected:

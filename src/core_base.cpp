@@ -84,11 +84,11 @@ void CoreBase::exchange_google_token(const std::string& id_token)
         url,
         headers,
         body,
-        [this](int status_code, const std::string& response)
+        [this](const amqhi::HttpResponse& response)
         {
-            if (status_code == 200)
+            if (response.status_code == 200)
             {
-                auto json = nlohmann::json::parse(response, nullptr, false);
+                auto json = nlohmann::json::parse(response.body, nullptr, false);
                 if (json.is_discarded())
                 {
                     selected_user()->access_token = "";
@@ -140,16 +140,16 @@ void CoreBase::handle_login(const std::string& email, const std::string& passwor
         url,
         headers,
         body,
-        [this](int status_code, const std::string& response)
+        [this](const amqhi::HttpResponse& response)
         {
-            if (status_code == 200)
+            if (response.status_code == 200)
             {
-                auto json = nlohmann::json::parse(response, nullptr, false);
+                auto json = nlohmann::json::parse(response.body, nullptr, false);
                 if (json.is_discarded())
                 {
                     selected_user()->access_token = "";
                     selected_user()->refresh_token = "";
-                    notify_request_failure(m_notifier, LOGIN_FAILURE, status_code, response);
+                    notify_request_failure(m_notifier, LOGIN_FAILURE, response.status_code, response.body);
                 }
                 else
                 {
@@ -171,7 +171,7 @@ void CoreBase::handle_login(const std::string& email, const std::string& passwor
             {
                 selected_user()->access_token = "";
                 selected_user()->refresh_token = "";
-                notify_request_failure(m_notifier, LOGIN_FAILURE, status_code, response);
+                notify_request_failure(m_notifier, LOGIN_FAILURE, response.status_code, response.body);
             }
         }
         , [](std::int16_t error_code, const std::string& data)
@@ -184,15 +184,15 @@ void CoreBase::fetch_user_info()
     std::string url = m_settings->instance_url() + "/users/me";
     std::map<std::string, std::string> headers;
     headers["Authorization"] = "Bearer " + selected_user()->access_token;
-    m_network_provider.get(url, headers, [this](int status_code, const std::string& response)
+    m_network_provider.get(url, headers, [this](const amqhi::HttpResponse& response)
                            {
-                               if (status_code == 200)
+                               if (response.status_code == 200)
                                {
-                                   const nlohmann::json body = nlohmann::json::parse(response, nullptr, false);
+                                   const nlohmann::json body = nlohmann::json::parse(response.body, nullptr, false);
                                    if (body.is_discarded())
                                    {
-                                       notify_request_failure(m_notifier, FETCH_USER_INFO_FAILURE, status_code,
-                                                              response);
+                                       notify_request_failure(m_notifier, FETCH_USER_INFO_FAILURE, response.status_code,
+                                                              response.body);
                                    }
                                    else
                                    {
@@ -217,11 +217,11 @@ void CoreBase::fetch_user_info()
                                        // {
                                        //     std::string profile_picture_id = it->get<std::string>();
                                        //     api::files::get_download_url(*this, profile_picture_id,
-                                       //                                  [this](int status_code, const std::string& response)
+                                       //                                  [this](const amqhi::HttpResponse& response)
                                        //                                  {
-                                       //                                      if (status_code == 200)
+                                       //                                      if (response.status_code == 200)
                                        //                                      {
-                                       //                                          auto& url = response;
+                                       //                                          auto& url = response.body;
                                        //                                          std::map<std::string, std::string> headers;
                                        //                                          m_network_provider.download_file(url, headers, );
                                        //                                      }
@@ -238,7 +238,7 @@ void CoreBase::fetch_user_info()
                                }
                                else
                                {
-                                   notify_request_failure(m_notifier, FETCH_USER_INFO_FAILURE, status_code, response);
+                                   notify_request_failure(m_notifier, FETCH_USER_INFO_FAILURE, response.status_code, response.body);
                                }
                            }, [this](std::int16_t error_code, const std::string& data)
                            {
@@ -266,15 +266,15 @@ void CoreBase::handle_register(const std::string& email, const std::string& pass
         url,
         headers,
         body,
-        [this](int status_code, const std::string& response)
+        [this](const amqhi::HttpResponse& response)
         {
-            if (status_code == 200)
+            if (response.status_code == 200)
             {
                 m_notifier.notify(REGISTER_SUCCESS);
             }
             else
             {
-                notify_request_failure(m_notifier, REGISTER_FAILURE, status_code, response);
+                notify_request_failure(m_notifier, REGISTER_FAILURE, response.status_code, response.body);
             }
         }
         , [](std::int16_t error_code, const std::string& data)
@@ -292,9 +292,9 @@ void CoreBase::handle_logout()
         url,
         headers,
         body,
-        [this](int status_code, const std::string& response)
+        [this](const amqhi::HttpResponse& response)
         {
-            if (status_code == 200)
+            if (response.status_code == 200)
             {
                 m_secure_storage_provider.remove_secure_string(m_selected_user_id);
                 fs::path user_dir_path = fs::path(m_app_support_path) / std::string_view(&m_selected_user_id, 1);
@@ -326,7 +326,7 @@ void CoreBase::handle_logout()
             }
             else
             {
-                notify_request_failure(m_notifier, LOGOUT_FAILURE, status_code, response);
+                notify_request_failure(m_notifier, LOGOUT_FAILURE, response.status_code, response.body);
             }
         }
         , [this](std::int16_t error_code, const std::string& data)

@@ -75,6 +75,7 @@ set(SHARED_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/src/utils/json_utils.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utils/json_utils.h
         ${CMAKE_CURRENT_LIST_DIR}/src/notifier_base.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/network_provider_base.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/network_provider_base.h
         ${CMAKE_CURRENT_LIST_DIR}/src/database_provider_base.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/database_provider_base.h
