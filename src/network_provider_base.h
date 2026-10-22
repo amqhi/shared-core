@@ -59,7 +59,7 @@ public:
     virtual void post(
      const std::string& url,
      const std::map<std::string, std::string>& headers,
-     const std::function<void(int status_code, const std::string& response)>& on_response,
+     const std::function<void(const amqhi::HttpResponse& response)>& on_response,
      const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
  ) = 0;
     virtual void post_json(
