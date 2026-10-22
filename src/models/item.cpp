@@ -266,7 +266,7 @@ void item_delete_on_local(const std::string& app_support_path, char user_local_i
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 
-    std::filesystem::remove(item_local_directory_path(app_support_path, user_local_id, item_id));
+    std::filesystem::remove_all(item_local_directory_path(app_support_path, user_local_id, item_id));
 }
 
 std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_local_id,
