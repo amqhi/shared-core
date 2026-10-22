@@ -117,10 +117,6 @@ set(SHARED_JAVA_BINDING_INCLUDE_DIRS
 set(SHARED_JAVA_BINDING_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_string.h
         ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_map.h
-        ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_network_provider_base.h
-        ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_notifier_base.h
-        ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_secure_storage_provider_base.h
-        ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_platform_utils_base.h
         ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_list.h
         ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_list.cpp
         ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_item.h
