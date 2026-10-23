@@ -161,6 +161,7 @@ namespace item_status
     constexpr char AVAILABLE_OFFLINE = 'a';
     constexpr char ONLINE_ONLY = 'o';
     constexpr char PENDING_UPLOAD = 'p';
+    constexpr char UPLOADING         = 'u';
 }
 
 void sqlite_bind_item(sqlite3_stmt* stmt, const Item& item);

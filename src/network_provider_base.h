@@ -14,6 +14,7 @@ namespace transfer_type
 {
     constexpr std::int8_t FILE = 0;
     constexpr std::int8_t THUMBNAIL = 1;
+    constexpr std::int8_t MULTIPART_FILE = 2;
 }
 
 struct MultipartPart

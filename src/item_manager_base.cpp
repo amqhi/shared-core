@@ -402,7 +402,16 @@ void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const s
                                                         body.contains("upload") && body["upload"].is_object())
                                                     {
                                                         Item item = item_from_json(body["item"]);
-                                                        item.save(m_core.database_provider().database());
+                                                        item.status = item_status::UPLOADING;
+                                                        auto id = item.id;
+                                                        m_items[id] = item;
+                                                        m_id_lists[m_items[id].parent_id].push_back(id);
+                                                        sort_items(m_items[id].parent_id);
+                                                        json data;
+                                                      data["id"] = id.to_string();
+                                                      data["parent_id"] = m_items[id].parent_id.to_string();
+                                                        m_core.notifier().notify(FILE_UPLOAD_STARTED, data);
+
                                                         auto& upload = body["upload"];
                                                         if (upload["type"] == "multipart")
                                                         {
@@ -411,14 +420,16 @@ void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const s
                                                                 "parts").get<nlohmann::json>();
                                                             // Parts allocated by the server
 
+                                                            // Payload for multipart completion
                                                             auto completed_parts = nlohmann::json::array();
 
                                                             nlohmann::json task_info;
                                                             task_info["id"] = item.id.to_string();
                                                             task_info["name"] = item.name;
-                                                            task_info["type"] = transfer_type::FILE;
+                                                            task_info["type"] = transfer_type::MULTIPART_FILE;
+                                                            task_info["file_size"] = size;
                                                             task_info["parent_id"] = item.parent_id.to_string();
-                                                            // Payload for multipart completion
+
                                                             m_core.network_provider().put_file(
                                                                 target_parts,
                                                                 mime_type,
@@ -602,8 +613,9 @@ void ItemManagerBase::complete_upload_multipart(const Item& item, const std::str
                                                     cache_file_metadata(m_core.database_provider().database(),
                                                                         file_metadata);
                                                     m_items[item.id] = item;
+                                                    m_items[item.id].status = item_status::ONLINE_ONLY;
                                                     m_items[item.id].setup_icon_type(file_metadata);
-                                                    m_id_lists[item.parent_id].push_back(item.id);
+                                                    m_items[item.id].save(m_core.database_provider().database());
                                                     json data;
                                                     data["id"] = item.id.to_string();
                                                     data["parent_id"] = item.parent_id.to_string();
@@ -612,12 +624,14 @@ void ItemManagerBase::complete_upload_multipart(const Item& item, const std::str
                                                 }
                                                 else
                                                 {
+                                                    apply_delete_item(item.id, item.parent_id);
                                                     notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
                                                                            response.status_code,
                                                                            response.body);
                                                 }
-                                            }, [](std::int16_t error_code, const std::string& data)
+                                            }, [this](std::int16_t error_code, const std::string& data)
                                             {
+                                                handle_network_error(m_core.notifier(), error_code, data);
                                             });
     });
 }
@@ -651,8 +665,9 @@ void ItemManagerBase::complete_upload(const Item& item, const std::string& check
                                                     cache_file_metadata(m_core.database_provider().database(),
                                                                         file_metadata);
                                                     m_items[item.id] = item;
+                                                    m_items[item.id].status = item_status::ONLINE_ONLY;
                                                     m_items[item.id].setup_icon_type(file_metadata);
-                                                    m_id_lists[item.parent_id].push_back(item.id);
+                                                    m_items[item.id].save(m_core.database_provider().database());
                                                     json data;
                                                     data["id"] = item.id.to_string();
                                                     data["parent_id"] = item.parent_id.to_string();
@@ -661,6 +676,7 @@ void ItemManagerBase::complete_upload(const Item& item, const std::string& check
                                                 }
                                                 else
                                                 {
+                                                    apply_delete_item(item.id, item.parent_id);
                                                     notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
                                                                            response.status_code,
                                                                            response.body);

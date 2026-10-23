@@ -60,6 +60,7 @@ constexpr std::int16_t ITEMS_RESTORE_FAILURE         = 1125;
 // -----------------------------------------------------------------------------
 constexpr std::int16_t FILE_DOWNLOAD_SUCCESS          = 1200;
 constexpr std::int16_t FILE_DOWNLOAD_FAILURE          = 1201;
+constexpr std::int16_t FILE_UPLOAD_STARTED            = 1202;
 constexpr std::int16_t ITEM_THUMBNAIL_DOWNLOAD_SUCCESS  = 1204;
 constexpr std::int16_t ITEM_THUMBNAIL_DOWNLOAD_FAILURE  = 1205;
 constexpr std::int16_t FETCH_FILE_DOWNLOAD_URL_SUCCESS = 1206;
