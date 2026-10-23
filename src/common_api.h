@@ -10,6 +10,7 @@
 #include "auth_tokens.h"
 #include "network_provider_base.h"
 
+struct ItemAttributes;
 struct FileMetadata;
 class CoreBase;
 struct UUID;
@@ -189,6 +190,62 @@ namespace api
             const std::function<void(const amqhi::HttpResponse& response)>& on_response,
             const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
         );
+
+        void create_file_raw(
+            CoreBase& core,
+            const ItemAttributes& item_attributes,
+            const std::string& mime_type,
+            std::uint64_t size,
+            const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+            const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure);
+        void create_file(
+            CoreBase& core,
+            const ItemAttributes& item_attributes,
+            const std::string& mime_type,
+            std::uint64_t size,
+            const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+            const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure);
+
+        void complete_upload_raw(
+            CoreBase& core,
+            const std::string& item_id,
+            const std::string& mime_type,
+            const std::string& checksum,
+            std::uint64_t size,
+            const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+            const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
+        );
+        void complete_upload(
+              CoreBase& core,
+              const std::string& item_id,
+              const std::string& mime_type,
+              const std::string& checksum,
+              std::uint64_t size,
+              const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+              const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
+              );
+
+        void complete_multipart_upload_raw(
+            CoreBase& core,
+            const std::string& item_id,
+            const std::string& mime_type,
+            const std::string& checksum,
+            std::uint64_t size,
+            const nlohmann::json& parts,
+            const std::string& upload_id,
+            const std::function<void(const amqhi::HttpResponse& response)>& on_response, const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
+        );
+        void complete_multipart_upload(
+            CoreBase& core,
+            const std::string& item_id,
+            const std::string& mime_type,
+            const std::string& checksum,
+            std::uint64_t size,
+            const nlohmann::json& parts,
+            const std::string& upload_id,
+            const std::function<void(const amqhi::HttpResponse& response)>& on_response, const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
+        );
+
     }
 
     namespace folders

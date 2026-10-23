@@ -374,165 +374,152 @@ void ItemManagerBase::sort_items(const UUID& parent_id)
 /// Upload file to server and create metadata
 void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const std::string& tmp_file_path)
 {
-    api::request_with_auto_refresh(m_core, [this, &item_attributes, &tmp_file_path]()
-    {
-        std::string url = m_core.settings().instance_url() + "/files";
-        std::map<std::string, std::string> headers;
-        nlohmann::json body = item_attributes;
-        std::string mime_type = mime_util::get_mime_type_from_file(tmp_file_path);
-        std::uint64_t size = std::filesystem::file_size(tmp_file_path);
+    std::string mime_type = mime_util::get_mime_type_from_file(tmp_file_path);
+    std::uint64_t size = std::filesystem::file_size(tmp_file_path);
+    std::string checksum = m_core.platform_utils().get_file_sha256_checksum(tmp_file_path);
 
-        body["mime_type"] = mime_type;
-        body["size"] = size;
-        headers["Content-Type"] = "application/json";
-        headers["Authorization"] = "Bearer " + m_core.selected_user()->access_token;
-        std::string checksum = m_core.platform_utils().get_file_sha256_checksum(tmp_file_path);
+    api::files::create_file(m_core, item_attributes, mime_type, size, [this, tmp_file_path, checksum, size, mime_type](
+                            const Response& response)
+                            {
+                                if (response.status_code == 201)
+                                {
+                                    auto body = json::parse(response.body, nullptr, false);
+                                    if (!body.is_discarded() && body.contains("item") &&
+                                        body["item"].is_object() &&
+                                        body.contains("upload") && body["upload"].is_object())
+                                    {
+                                        Item item = item_from_json(body["item"]);
+                                        item.status = item_status::UPLOADING;
+                                        auto id = item.id;
+                                        m_items[id] = item;
+                                        m_id_lists[m_items[id].parent_id].push_back(id);
+                                        sort_items(m_items[id].parent_id);
+                                        json data;
+                                        data["id"] = id.to_string();
+                                        data["parent_id"] = m_items[id].parent_id.to_string();
+                                        m_core.notifier().notify(FILE_UPLOAD_STARTED, data);
 
-        m_core.network_provider().post_json(url,
-                                            headers,
-                                            body,
-                                            [this, tmp_file_path, checksum, size, mime_type, url](
-                                            const Response& response)
-                                            {
-                                                if (response.status_code == 201)
+                                        auto& upload = body["upload"];
+                                        if (upload["type"] == "multipart")
+                                        {
+                                            const std::string& upload_id = upload["upload_id"];
+                                            auto target_parts = upload.at(
+                                                "parts").get<nlohmann::json>();
+                                            // Parts allocated by the server
+
+                                            // Payload for multipart completion
+                                            auto completed_parts = nlohmann::json::array();
+
+                                            nlohmann::json task_info;
+                                            task_info["id"] = item.id.to_string();
+                                            task_info["name"] = item.name;
+                                            task_info["type"] = transfer_type::MULTIPART_FILE;
+                                            task_info["file_size"] = size;
+                                            task_info["parent_id"] = item.parent_id.to_string();
+
+                                            m_core.network_provider().put_file(
+                                                target_parts,
+                                                mime_type,
+                                                tmp_file_path,
+                                                task_info,
+                                                [this, checksum, size, item, mime_type, upload_id,
+                                                    completed_parts](
+                                                const Response& response)
                                                 {
-                                                    auto body = json::parse(response.body, nullptr, false);
-                                                    if (!body.is_discarded() && body.contains("item") &&
-                                                        body["item"].is_object() &&
-                                                        body.contains("upload") && body["upload"].is_object())
+                                                    auto parts_json = json::parse(
+                                                        response.body, nullptr, false);
+                                                    if (response.status_code == 200)
                                                     {
-                                                        Item item = item_from_json(body["item"]);
-                                                        item.status = item_status::UPLOADING;
-                                                        auto id = item.id;
-                                                        m_items[id] = item;
-                                                        m_id_lists[m_items[id].parent_id].push_back(id);
-                                                        sort_items(m_items[id].parent_id);
-                                                        json data;
-                                                      data["id"] = id.to_string();
-                                                      data["parent_id"] = m_items[id].parent_id.to_string();
-                                                        m_core.notifier().notify(FILE_UPLOAD_STARTED, data);
-
-                                                        auto& upload = body["upload"];
-                                                        if (upload["type"] == "multipart")
-                                                        {
-                                                            const std::string& upload_id = upload["upload_id"];
-                                                            auto target_parts = upload.at(
-                                                                "parts").get<nlohmann::json>();
-                                                            // Parts allocated by the server
-
-                                                            // Payload for multipart completion
-                                                            auto completed_parts = nlohmann::json::array();
-
-                                                            nlohmann::json task_info;
-                                                            task_info["id"] = item.id.to_string();
-                                                            task_info["name"] = item.name;
-                                                            task_info["type"] = transfer_type::MULTIPART_FILE;
-                                                            task_info["file_size"] = size;
-                                                            task_info["parent_id"] = item.parent_id.to_string();
-
-                                                            m_core.network_provider().put_file(
-                                                                target_parts,
-                                                                mime_type,
-                                                                tmp_file_path,
-                                                                task_info,
-                                                                [this, checksum, size, item, mime_type, upload_id,
-                                                                    completed_parts](
-                                                                const Response& response)
-                                                                {
-                                                                    auto parts_json = json::parse(
-                                                                        response.body, nullptr, false);
-                                                                    if (response.status_code == 200)
-                                                                    {
-                                                                        complete_upload_multipart(
-                                                                            item, checksum, size,
-                                                                            mime_type, upload_id,
-                                                                            parts_json);
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        notify_request_failure(
-                                                                            m_core.notifier(),
-                                                                            ITEM_CREATE_FAILURE,
-                                                                            response.status_code,
-                                                                            response.body);
-                                                                    }
-                                                                }
-                                                                , [this](std::int16_t error_code,
-                                                                         const std::string& data)
-                                                                {
-                                                                    handle_network_error(
-                                                                        m_core.notifier(), error_code, data);
-                                                                });
-                                                        }
-                                                        else if (upload["type"] == "single")
-                                                        {
-                                                            const std::string& upload_url = upload.at("url").get<
-                                                                std::string>();
-                                                            std::map<std::string, std::string> headers;
-                                                            headers["Content-Type"] = mime_type;
-                                                            headers["Content-Length"] = std::to_string(size);
-
-                                                            nlohmann::json task_info;
-                                                            task_info["id"] = item.id.to_string();
-                                                            task_info["name"] = item.name;
-                                                            task_info["type"] = transfer_type::FILE;
-                                                            task_info["parent_id"] = item.parent_id.to_string();
-                                                            m_core.network_provider().put_file(
-                                                                upload_url,
-                                                                headers,
-                                                                tmp_file_path,
-                                                                task_info,
-                                                                [this, checksum, size, mime_type, item, upload_url](
-                                                                const Response& response)
-                                                                {
-                                                                    if (response.status_code == 200)
-                                                                    {
-                                                                        complete_upload(item, checksum,
-                                                                            size, mime_type);
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        notify_request_failure(
-                                                                            m_core.notifier(),
-                                                                            ITEM_CREATE_FAILURE,
-                                                                            response.status_code,
-                                                                            response.body, upload_url);
-                                                                    }
-                                                                }
-                                                                , [this](std::int16_t error_code,
-                                                                         const std::string& data)
-                                                                {
-                                                                    handle_network_error(
-                                                                        m_core.notifier(), error_code, data);
-                                                                });
-                                                        }
-                                                        else
-                                                        {
-                                                            notify_request_failure(m_core.notifier(),
-                                                                ITEM_CREATE_FAILURE,
-                                                                response.status_code,
-                                                                response.body, url);
-                                                        }
+                                                        complete_upload_multipart(
+                                                            item, checksum, size,
+                                                            mime_type, upload_id,
+                                                            parts_json);
                                                     }
                                                     else
                                                     {
-                                                        notify_request_failure(m_core.notifier(),
-                                                                               ITEM_CREATE_FAILURE,
-                                                                               response.status_code,
-                                                                               response.body, url);
+                                                        notify_request_failure(
+                                                            m_core.notifier(),
+                                                            ITEM_CREATE_FAILURE,
+                                                            response.status_code,
+                                                            response.body);
                                                     }
                                                 }
-                                                else
+                                                , [this](std::int16_t error_code,
+                                                         const std::string& data)
                                                 {
-                                                    notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
-                                                                           response.status_code,
-                                                                           response.body);
+                                                    handle_network_error(
+                                                        m_core.notifier(), error_code, data);
+                                                });
+                                        }
+                                        else if (upload["type"] == "single")
+                                        {
+                                            const std::string& upload_url = upload.at("url").get<
+                                                std::string>();
+                                            std::map<std::string, std::string> headers;
+                                            headers["Content-Type"] = mime_type;
+                                            headers["Content-Length"] = std::to_string(size);
+
+                                            nlohmann::json task_info;
+                                            task_info["id"] = item.id.to_string();
+                                            task_info["name"] = item.name;
+                                            task_info["type"] = transfer_type::FILE;
+                                            task_info["parent_id"] = item.parent_id.to_string();
+                                            m_core.network_provider().put_file(
+                                                upload_url,
+                                                headers,
+                                                tmp_file_path,
+                                                task_info,
+                                                [this, checksum, size, mime_type, item, upload_url](
+                                                const Response& response)
+                                                {
+                                                    if (response.status_code == 200)
+                                                    {
+                                                        complete_upload(item, checksum,
+                                                                        size, mime_type);
+                                                    }
+                                                    else
+                                                    {
+                                                        notify_request_failure(
+                                                            m_core.notifier(),
+                                                            ITEM_CREATE_FAILURE,
+                                                            response.status_code,
+                                                            response.body, upload_url);
+                                                    }
                                                 }
-                                            }, [this](std::int16_t error_code, const std::string& data)
-                                            {
-                                                handle_network_error(m_core.notifier(), error_code, data);
-                                            });
-    });
+                                                , [this](std::int16_t error_code,
+                                                         const std::string& data)
+                                                {
+                                                    handle_network_error(
+                                                        m_core.notifier(), error_code, data);
+                                                });
+                                        }
+                                        else
+                                        {
+                                            notify_request_failure(m_core.notifier(),
+                                                                   ITEM_CREATE_FAILURE,
+                                                                   response.status_code,
+                                                                   response.body);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        notify_request_failure(m_core.notifier(),
+                                                               ITEM_CREATE_FAILURE,
+                                                               response.status_code,
+                                                               response.body);
+                                    }
+                                }
+                                else
+                                {
+                                    notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
+                                                           response.status_code,
+                                                           response.body);
+                                }
+                            },
+                            [this](std::int16_t error_code, const std::string& data)
+                            {
+                                handle_network_error(m_core.notifier(), error_code, data);
+                            });
 }
 
 void ItemManagerBase::create_folder(const ItemAttributes& item_attributes)
@@ -585,21 +572,13 @@ void ItemManagerBase::complete_upload_multipart(const Item& item, const std::str
                                                 const std::string& mime_type, const std::string& upload_id,
                                                 const json& parts)
 {
-    api::request_with_auto_refresh(m_core, [this, &item, &checksum, size, &mime_type, &upload_id, &parts]()
-    {
-        std::string url = m_core.settings().instance_url() + "/files/" + item.id.to_string() + "/complete";
-        std::map<std::string, std::string> headers;
-        nlohmann::json body;
-        headers["Content-Type"] = "application/json";
-        headers["Authorization"] = "Bearer " + m_core.selected_user()->access_token;
-        body["checksum"] = checksum;
-        body["size"] = size;
-        body["mime_type"] = mime_type;
-        body["upload_id"] = upload_id;
-        body["parts"] = parts;
-        m_core.network_provider().post_json(url,
-                                            headers,
-                                            body,
+    api::files::complete_multipart_upload(m_core,
+                                            item.id.to_string(),
+                                            mime_type,
+                                            checksum,
+                                            size,
+                                            parts,
+                                            upload_id,
                                             [this, item, checksum, mime_type, size](
                                             const Response& response)
                                             {
@@ -633,59 +612,49 @@ void ItemManagerBase::complete_upload_multipart(const Item& item, const std::str
                                             {
                                                 handle_network_error(m_core.notifier(), error_code, data);
                                             });
-    });
 }
 
 void ItemManagerBase::complete_upload(const Item& item, const std::string& checksum, std::uint64_t size,
                                       const std::string& mime_type)
 {
-    api::request_with_auto_refresh(m_core, [this, &item, &checksum, size, &mime_type]()
-    {
-        std::string url = m_core.settings().instance_url() + "/files/" + item.id.to_string() + "/complete";
-        std::map<std::string, std::string> headers;
-        nlohmann::json body;
-        headers["Content-Type"] = "application/json";
-        headers["Authorization"] = "Bearer " + m_core.selected_user()->access_token;
-        body["checksum"] = checksum;
-        body["size"] = size;
-        body["mime_type"] = mime_type;
-        m_core.network_provider().post_json(url,
-                                            headers,
-                                            body,
-                                            [this, item, checksum, mime_type, size](
-                                            const Response& response)
+    api::files::complete_upload(m_core,
+        item.id.to_string(),
+                                        mime_type,
+                                        checksum,
+                                        size,
+                                        [this, item, checksum, mime_type, size](
+                                        const Response& response)
+                                        {
+                                            if (response.status_code == 200)
                                             {
-                                                if (response.status_code == 200)
-                                                {
-                                                    FileMetadata file_metadata;
-                                                    file_metadata.id = item.id;
-                                                    file_metadata.checksum = checksum;
-                                                    file_metadata.mime_type = mime_type;
-                                                    file_metadata.size = size;
-                                                    cache_file_metadata(m_core.database_provider().database(),
-                                                                        file_metadata);
-                                                    m_items[item.id] = item;
-                                                    m_items[item.id].status = item_status::ONLINE_ONLY;
-                                                    m_items[item.id].setup_icon_type(file_metadata);
-                                                    m_items[item.id].save(m_core.database_provider().database());
-                                                    json data;
-                                                    data["id"] = item.id.to_string();
-                                                    data["parent_id"] = item.parent_id.to_string();
-                                                    m_core.notifier().notify(ITEM_CREATE_SUCCESS, data);
-                                                    download_thumbnail(item.id);
-                                                }
-                                                else
-                                                {
-                                                    apply_delete_item(item.id, item.parent_id);
-                                                    notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
-                                                                           response.status_code,
-                                                                           response.body);
-                                                }
-                                            }, [this](std::int16_t error_code, const std::string& data)
+                                                FileMetadata file_metadata;
+                                                file_metadata.id = item.id;
+                                                file_metadata.checksum = checksum;
+                                                file_metadata.mime_type = mime_type;
+                                                file_metadata.size = size;
+                                                cache_file_metadata(m_core.database_provider().database(),
+                                                                    file_metadata);
+                                                m_items[item.id] = item;
+                                                m_items[item.id].status = item_status::ONLINE_ONLY;
+                                                m_items[item.id].setup_icon_type(file_metadata);
+                                                m_items[item.id].save(m_core.database_provider().database());
+                                                json data;
+                                                data["id"] = item.id.to_string();
+                                                data["parent_id"] = item.parent_id.to_string();
+                                                m_core.notifier().notify(ITEM_CREATE_SUCCESS, data);
+                                                download_thumbnail(item.id);
+                                            }
+                                            else
                                             {
-                                                handle_network_error(m_core.notifier(), error_code, data);
-                                            });
-    });
+                                                apply_delete_item(item.id, item.parent_id);
+                                                notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
+                                                                       response.status_code,
+                                                                       response.body);
+                                            }
+                                        }, [this](std::int16_t error_code, const std::string& data)
+                                        {
+                                            handle_network_error(m_core.notifier(), error_code, data);
+                                        });
 }
 
 void ItemManagerBase::update_item(const UUID& id, const ItemAttributes& item_attributes)

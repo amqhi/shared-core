@@ -235,6 +235,97 @@ void api::files::get_download_url(CoreBase& core, const std::string& id,
     });
 }
 
+void api::files::create_file_raw(CoreBase& core, const ItemAttributes& item_attributes, const std::string& mime_type,
+                                 std::uint64_t size,
+                                 const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+                                 const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure)
+{
+    std::string url = core.settings().instance_url() + "/files";
+    std::map<std::string, std::string> headers;
+    nlohmann::json body = item_attributes;
+    body["mime_type"] = mime_type;
+    body["size"] = size;
+    headers["Content-Type"] = "application/json";
+    headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
+
+    core.network_provider().post_json(url,
+                                            headers,
+                                            body,
+                                            on_response,
+                                            on_failure);
+}
+
+void api::files::create_file(CoreBase& core, const ItemAttributes& item_attributes, const std::string& mime_type,
+                             std::uint64_t size,
+                             const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+                             const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure)
+{
+    request_with_auto_refresh(core, [&core, item_attributes, mime_type, size, on_response, on_failure]()
+    {
+        create_file_raw(core, item_attributes, mime_type, size, on_response, on_failure);
+    });
+}
+
+void api::files::complete_upload_raw(CoreBase& core, const std::string& item_id,
+                                     const std::string& mime_type, const std::string& checksum, std::uint64_t size,
+                                     const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+                                     const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure)
+{
+    std::string url = core.settings().instance_url() + "/files/" + item_id + "/complete";
+    std::map<std::string, std::string> headers;
+    nlohmann::json body;
+    headers["Content-Type"] = "application/json";
+    headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
+    body["checksum"] = checksum;
+    body["size"] = size;
+    body["mime_type"] = mime_type;
+    core.network_provider().post_json(url,
+                                        headers,
+                                        body,on_response, on_failure);
+}
+
+void api::files::complete_upload(CoreBase& core, const std::string& item_id, const std::string& mime_type,
+    const std::string& checksum, std::uint64_t size,
+    const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+    const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure)
+{
+    request_with_auto_refresh(core, [&core, item_id, mime_type, checksum, size, on_response, on_failure]()
+    {
+        complete_upload_raw(core, item_id, mime_type, checksum, size, on_response, on_failure);
+    });
+}
+
+void api::files::complete_multipart_upload_raw(CoreBase& core, const std::string& item_id, const std::string& mime_type,
+                                               const std::string& checksum, std::uint64_t size, const nlohmann::json& parts,
+                                               const std::string& upload_id,
+                                               const std::function<void(const amqhi::HttpResponse& response)>& on_response, const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure)
+{
+    std::string url = core.settings().instance_url() + "/files/" + item_id + "/complete";
+    std::map<std::string, std::string> headers;
+    nlohmann::json body;
+    headers["Content-Type"] = "application/json";
+    headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
+    body["checksum"] = checksum;
+    body["size"] = size;
+    body["mime_type"] = mime_type;
+    body["upload_id"] = upload_id;
+    body["parts"] = parts;
+    core.network_provider().post_json(url,
+                                        headers,
+                                        body, on_response, on_failure);
+}
+
+void api::files::complete_multipart_upload(CoreBase& core, const std::string& item_id, const std::string& mime_type,
+    const std::string& checksum, std::uint64_t size, const nlohmann::json& parts, const std::string& upload_id,
+    const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+    const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure)
+{
+    request_with_auto_refresh(core, [&core, checksum, item_id, size, mime_type, upload_id, parts, on_response, on_failure]()
+    {
+        complete_multipart_upload_raw(core, item_id, mime_type, checksum, size, parts, upload_id, on_response, on_failure);
+    });
+}
+
 void api::items::get_thumbnail_download_url(CoreBase& core, const std::string& id, const OnResponse& on_response)
 {
     get_thumbnail_download_url(core, id, on_response, [](std::int16_t error_code, const std::string& data)
