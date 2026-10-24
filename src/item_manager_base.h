@@ -18,6 +18,20 @@ class INetworkProvider;
 class INotifier;
 struct User;
 
+
+enum ItemsTransferContextType
+{
+    DOWNLOAD_THUMBNAILS
+};
+
+struct ItemsTransferContext
+{
+    std::vector<UUID> ids;
+    std::size_t index = 0;
+    std::int16_t event_code;
+    ItemsTransferContextType type;
+};
+
 class ItemManagerBase
 {
     public:
@@ -66,10 +80,10 @@ protected:
     std::unordered_map<UUID, FileMetadata> m_file_metadata;
     std::unordered_map<UUID, FolderMetadata> m_folder_metadata;
 
-    std::unique_ptr<std::vector<UUID>> m_thumbnail_downloading_ids;
+    std::unique_ptr<std::vector<ItemsTransferContext>> m_items_transfer_contexts = nullptr;
 
 private:
-    void download_next_thumbnail(std::size_t index, std::int16_t event_code);
+    void download_next_thumbnail();
 
     void refresh_phase1_files();
     void refresh_phase2_folders();
@@ -79,6 +93,9 @@ private:
     void apply_update_item(const Item& item);
     void apply_move_item(const UUID& id, const UUID& old_parent_id, const UUID& parent_id);
     void apply_delete_item(const UUID& id, const UUID& parent_id);
+
+    void process_next_context();
+
 };
 
 

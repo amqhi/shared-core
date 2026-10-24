@@ -1091,53 +1091,69 @@ void ItemManagerBase::delete_items(const std::vector<UUID>& ids)
 
 void ItemManagerBase::download_thumbnails(int16_t event_code)
 {
-    if (m_thumbnail_downloading_ids || m_items.empty())
+    if (m_items.empty())
     {
-        return;
-    }
-    m_thumbnail_downloading_ids = std::make_unique<std::vector<UUID>>();
-
-    for (const auto& [id, item] : m_items)
-    {
-        m_thumbnail_downloading_ids->push_back(id);
-    }
-
-    if (m_thumbnail_downloading_ids->empty())
-    {
-        m_thumbnail_downloading_ids.reset();
-        return;
-    }
-
-    download_next_thumbnail(0, event_code);
-}
-
-void ItemManagerBase::download_next_thumbnail(std::size_t index, std::int16_t event_code)
-{
-    if (index >= m_thumbnail_downloading_ids->size())
-    {
-        m_thumbnail_downloading_ids.reset();
         m_core.notifier().notify(event_code);
         return;
     }
 
-    const auto& id = m_thumbnail_downloading_ids->at(index);
+    if (!m_items_transfer_contexts)
+    {
+        m_items_transfer_contexts = std::make_unique<std::vector<ItemsTransferContext>>();
+    }
+    if (m_items_transfer_contexts->empty() || m_items_transfer_contexts->at(0).type != DOWNLOAD_THUMBNAILS)
+    {
+        ItemsTransferContext context;
+        context.ids = {};
+        context.ids.reserve(m_items.size());
+        context.type = DOWNLOAD_THUMBNAILS;
+        context.event_code = event_code;
+        for (const auto& [id, item] : m_items)
+        {
+            context.ids.push_back(id);
+        }
+
+        m_items_transfer_contexts->push_back(std::move(context));
+    }
+
+    if (m_items_transfer_contexts->at(0).type == DOWNLOAD_THUMBNAILS)
+    {
+        download_next_thumbnail();
+    }
+}
+
+void ItemManagerBase::download_next_thumbnail()
+{
+    auto& context = m_items_transfer_contexts->at(0);
+    if (context.index >= context.ids.size())
+    {
+        m_items_transfer_contexts->erase(m_items_transfer_contexts->begin());
+        m_core.notifier().notify(context.event_code);
+        process_next_context();
+        return;
+    }
+
+    const auto& id = context.ids[context.index];
     if (m_items[id].type != item_type::FILE)
     {
-        download_next_thumbnail(index + 1, event_code);
+        m_items_transfer_contexts->at(0).index++;
+        download_next_thumbnail();
         return;
     }
     if (m_file_metadata[id].mime_type.compare(0, 6, "image/") != 0 && m_file_metadata[id].mime_type.
         compare(0, 6, "video/") != 0 && m_file_metadata[id].mime_type.compare(0, 6, "audio/") != 0)
     {
-        download_next_thumbnail(index + 1, event_code);
+        m_items_transfer_contexts->at(0).index++;
+        download_next_thumbnail();
         return;
     }
 
-    api::request_with_auto_refresh(m_core, [this, index, event_code]()
+    api::request_with_auto_refresh(m_core, [this]()
     {
-        const auto& id = m_thumbnail_downloading_ids->at(index);
+        auto& context =  m_items_transfer_contexts->at(0);
+        const auto& id = context.ids[context.index];
         api::items::get_thumbnail_download_url(m_core, id.to_string(),
-                                               [this, id, index, event_code](
+                                               [this, id](
                                                const Response& response)
                                                {
                                                    fs::path thumbnail_path = item_thumbnail_path(m_core, id);
@@ -1158,14 +1174,16 @@ void ItemManagerBase::download_next_thumbnail(std::size_t index, std::int16_t ev
                                                            headers,
                                                            thumbnail_path.string(),
                                                            task_info,
-                                                           [this, index, event_code](
+                                                           [this](
                                                            const Response& response)
                                                            {
-                                                               download_next_thumbnail(index + 1, event_code);
-                                                           }, [this, index, event_code](
+                                                               m_items_transfer_contexts->at(0).index++;
+                                                               download_next_thumbnail();
+                                                           }, [this](
                                                            std::int16_t error_code, const std::string& data)
                                                            {
-                                                               download_next_thumbnail(index + 1, event_code);
+                                                               m_items_transfer_contexts->at(0).index++;
+                                                               download_next_thumbnail();
                                                            });
                                                    }
                                                    else
@@ -1175,12 +1193,14 @@ void ItemManagerBase::download_next_thumbnail(std::size_t index, std::int16_t ev
                                                        data["response"] = response.body;
                                                        data["id"] = id.to_string();
                                                        m_core.notifier().notify(ITEM_THUMBNAIL_DOWNLOAD_FAILURE, data);
-                                                       download_next_thumbnail(index + 1, event_code);
+                                                       m_items_transfer_contexts->at(0).index++;
+                                                       download_next_thumbnail();
                                                    }
-                                               }, [this, index, event_code](
+                                               }, [this](
                                                std::int16_t error_code, const std::string& data)
                                                {
-                                                   download_next_thumbnail(index + 1, event_code);
+                                                   m_items_transfer_contexts->at(0).index++;
+                                                   download_next_thumbnail();
                                                });
     });
 }
@@ -1527,5 +1547,24 @@ void ItemManagerBase::apply_delete_item(const UUID& id, const UUID& parent_id)
         list.erase(std::remove(list.begin(), list.end(), id),
                    list.end());
         m_items.erase(id);
+    }
+}
+
+void ItemManagerBase::process_next_context()
+{
+    if (m_items_transfer_contexts->empty())
+    {
+        m_items_transfer_contexts.reset();
+        return;
+    }
+    switch (m_items_transfer_contexts->at(0).type)
+    {
+    case DOWNLOAD_THUMBNAILS:
+        download_next_thumbnail();
+        break;
+    default:
+        m_items_transfer_contexts->erase(m_items_transfer_contexts->begin());
+        process_next_context();
+        break;
     }
 }
