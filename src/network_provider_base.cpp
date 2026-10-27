@@ -104,6 +104,8 @@ void INetworkProviderBase::put_file(const nlohmann::json& parts, const std::stri
     multipart_file_task->on_response = std::move(on_response);
     multipart_file_task->on_failure = std::move(on_failure);
     multipart_file_task->task_info = task_info;
+
+    // TODO: Make file splitting non-blocking.
     for (const auto & it : parts)
     {
         MultipartPart part;
