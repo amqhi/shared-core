@@ -445,7 +445,7 @@ void api::items::restore_items(CoreBase& core, const std::vector<UUID>& ids, con
 void api::items::delete_items_raw(CoreBase& core, const std::vector<std::string>& ids, const OnResponse& on_response,
                                   const OnFailure& on_failure)
 {
-    std::string url = core.settings().instance_url() + "/items/delete";
+    std::string url = core.settings().instance_url() + "/items/permanent-delete";
     std::map<std::string, std::string> headers;
     headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
     nlohmann::json body;

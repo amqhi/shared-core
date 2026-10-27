@@ -1064,7 +1064,7 @@ void ItemManagerBase::delete_items(const std::vector<UUID>& ids)
     vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
 
     m_core.notifier().notify(ITEMS_DELETE_STARTED);
-    api::items::soft_delete_items(m_core, ids, [this, ids](const Response& response)
+    api::items::delete_items(m_core, ids, [this, ids](const Response& response)
                                   {
                                       if (response.status_code == 200)
                                       {
