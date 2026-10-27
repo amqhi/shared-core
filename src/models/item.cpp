@@ -533,7 +533,14 @@ Item item_from_json(const nlohmann::json& json)
 
     if (auto it = json.find("parent_id"); it != json.end() && it->is_string())
     {
-        item.parent_id = UUID::from_string(it->get<std::string>());
+        if (item.deleted_at.has_value())
+        {
+            item.parent_id = special_folder::TRASH;
+        }
+        else
+        {
+            item.parent_id = UUID::from_string(it->get<std::string>());
+        }
     }
     else
     {
