@@ -591,11 +591,12 @@ void ItemManagerBase::complete_upload_multipart(const Item& item, const std::str
                                                   file_metadata.checksum = checksum;
                                                   file_metadata.mime_type = mime_type;
                                                   file_metadata.size = size;
+                                                  m_file_metadata[item.id] = std::move(file_metadata);
                                                   cache_file_metadata(m_core.database_provider().database(),
-                                                                      file_metadata);
+                                                                       m_file_metadata[item.id]);
                                                   m_items[item.id] = item;
                                                   m_items[item.id].status = item_status::ONLINE_ONLY;
-                                                  m_items[item.id].setup_icon_type(file_metadata);
+                                                  m_items[item.id].setup_icon_type( m_file_metadata[item.id]);
                                                   m_items[item.id].save(m_core.database_provider().database());
                                                   json data;
                                                   data["id"] = item.id.to_string();
@@ -634,11 +635,12 @@ void ItemManagerBase::complete_upload(const Item& item, const std::string& check
                                         file_metadata.checksum = checksum;
                                         file_metadata.mime_type = mime_type;
                                         file_metadata.size = size;
+                                        m_file_metadata[item.id] = std::move(file_metadata);
                                         cache_file_metadata(m_core.database_provider().database(),
-                                                            file_metadata);
+                                                             m_file_metadata[item.id]);
                                         m_items[item.id] = item;
                                         m_items[item.id].status = item_status::ONLINE_ONLY;
-                                        m_items[item.id].setup_icon_type(file_metadata);
+                                        m_items[item.id].setup_icon_type( m_file_metadata[item.id]);
                                         m_items[item.id].save(m_core.database_provider().database());
                                         json data;
                                         data["id"] = item.id.to_string();
