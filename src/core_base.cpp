@@ -80,7 +80,7 @@ void CoreBase::exchange_google_token(const std::string& id_token)
     std::map<std::string, std::string> headers;
     nlohmann::json body;
     body["id_token"] = id_token;
-    m_network_provider.post_json(
+    m_network_provider.post(
         url,
         headers,
         body,
@@ -136,7 +136,7 @@ void CoreBase::handle_login(const std::string& email, const std::string& passwor
     body["device_name"] = m_platform_utils.get_device_name();
     body["device_os"] = platform::name();
     body["app_type"] = "cloud";
-    m_network_provider.post_json(
+    m_network_provider.post(
         url,
         headers,
         body,
@@ -262,7 +262,7 @@ void CoreBase::handle_register(const std::string& email, const std::string& pass
     body["email"] = email;
     body["password"] = password;
     body["name"] = name;
-    m_network_provider.post_json(
+    m_network_provider.post(
         url,
         headers,
         body,
@@ -288,7 +288,7 @@ void CoreBase::handle_logout()
     std::map<std::string, std::string> headers;
     headers["Authorization"] = "Bearer " + selected_user()->access_token;
     nlohmann::json body;
-    m_network_provider.post_json(
+    m_network_provider.post(
         url,
         headers,
         body,

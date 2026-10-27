@@ -57,7 +57,7 @@ void api::sync::acknowledge_events_raw(
     headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
     nlohmann::json body;
     body["item_ids"] = item_ids;
-    core.network_provider().post_json(url, headers, body, on_response, on_failure);
+    core.network_provider().post(url, headers, body, on_response, on_failure);
 }
 
 void api::sync::acknowledge_events(
@@ -248,7 +248,7 @@ void api::files::create_file_raw(CoreBase& core, const ItemAttributes& item_attr
     headers["Content-Type"] = "application/json";
     headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
 
-    core.network_provider().post_json(url,
+    core.network_provider().post(url,
                                             headers,
                                             body,
                                             on_response,
@@ -279,7 +279,7 @@ void api::files::complete_upload_raw(CoreBase& core, const std::string& item_id,
     body["checksum"] = checksum;
     body["size"] = size;
     body["mime_type"] = mime_type;
-    core.network_provider().post_json(url,
+    core.network_provider().post(url,
                                         headers,
                                         body,on_response, on_failure);
 }
@@ -310,7 +310,7 @@ void api::files::complete_multipart_upload_raw(CoreBase& core, const std::string
     body["mime_type"] = mime_type;
     body["upload_id"] = upload_id;
     body["parts"] = parts;
-    core.network_provider().post_json(url,
+    core.network_provider().post(url,
                                         headers,
                                         body, on_response, on_failure);
 }
@@ -343,7 +343,7 @@ void api::items::move_items_raw(CoreBase& core, const std::vector<std::string>& 
     nlohmann::json body;
     body["ids"] = ids;
     body["parent_id"] = parent_id;
-    core.network_provider().post_json(url,
+    core.network_provider().post(url,
                                 headers,
                                 body,
                                 on_response,
@@ -380,7 +380,7 @@ void api::items::soft_delete_items_raw(CoreBase& core, const std::vector<std::st
     headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
     nlohmann::json body;
     body["ids"] = ids;
-    core.network_provider().post_json(url,
+    core.network_provider().post(url,
                                 headers,
                                 body,
                                 on_response,
@@ -415,7 +415,7 @@ void api::items::restore_items_raw(CoreBase& core, const std::vector<std::string
     headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
     nlohmann::json body;
     body["ids"] = ids;
-    core.network_provider().post_json(url,
+    core.network_provider().post(url,
                                 headers,
                                 body,
                                 on_response,
@@ -450,7 +450,7 @@ void api::items::delete_items_raw(CoreBase& core, const std::vector<std::string>
     headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
     nlohmann::json body;
     body["ids"] = ids;
-    core.network_provider().post_json(url,
+    core.network_provider().post(url,
                                 headers,
                                 body,
                                 on_response,
@@ -483,7 +483,7 @@ void api::auth::refresh(CoreBase& core, const std::function<void()>& on_success)
     std::map<std::string, std::string> headers;
     nlohmann::json body;
     body["refresh_token"] = core.selected_user()->refresh_token;
-    core.network_provider().post_json(
+    core.network_provider().post(
         url,
         headers,
         body,

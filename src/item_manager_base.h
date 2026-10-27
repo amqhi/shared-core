@@ -2,7 +2,6 @@
 #ifndef SHARED_CORE_ITEM_MANAGER_BASE_H
 #define SHARED_CORE_ITEM_MANAGER_BASE_H
 
-#include <map>
 #include "item.h"
 #include <functional>
 
@@ -17,20 +16,6 @@ class CoreBase;
 class INetworkProvider;
 class INotifier;
 struct User;
-
-
-enum ItemsTransferContextType
-{
-    DOWNLOAD_THUMBNAILS
-};
-
-struct ItemsTransferContext
-{
-    std::vector<UUID> ids;
-    std::size_t index = 0;
-    std::int16_t event_code;
-    ItemsTransferContextType type;
-};
 
 class ItemManagerBase
 {
@@ -80,10 +65,7 @@ protected:
     std::unordered_map<UUID, FileMetadata> m_file_metadata;
     std::unordered_map<UUID, FolderMetadata> m_folder_metadata;
 
-    std::unique_ptr<std::vector<ItemsTransferContext>> m_items_transfer_contexts = nullptr;
-
 private:
-    void download_next_thumbnail();
 
     void refresh_phase1_files();
     void refresh_phase2_folders();
@@ -93,8 +75,6 @@ private:
     void apply_update_item(const Item& item);
     void apply_move_item(const UUID& id, const UUID& old_parent_id, const UUID& parent_id);
     void apply_delete_item(const UUID& id, const UUID& parent_id);
-
-    void process_next_context();
 
 };
 

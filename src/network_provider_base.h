@@ -9,6 +9,7 @@
 #include <string>
 #include <map>
 #include "json.hpp"
+#include <queue>
 
 namespace transfer_type
 {
@@ -51,42 +52,91 @@ class INetworkProviderBase
 {
 public:
     virtual ~INetworkProviderBase() = default;
-    virtual void get(
+    void get(
         const std::string& url,
         const std::map<std::string, std::string>& headers,
-        const std::function<void(const amqhi::HttpResponse& response)>& on_response,
-        const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
-    ) = 0;
-    virtual void post(
-     const std::string& url,
-     const std::map<std::string, std::string>& headers,
-     const std::function<void(const amqhi::HttpResponse& response)>& on_response,
-     const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
- ) = 0;
-    virtual void post_json(
+        std::function<void(const amqhi::HttpResponse& response)> on_response,
+        std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+    );
+    void post(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
+        std::function<void(const amqhi::HttpResponse& response)> on_response,
+        std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+    );
+    void post(
         const std::string& url,
         const std::map<std::string, std::string>& headers,
         const nlohmann::json& body,
-        const std::function<void(const amqhi::HttpResponse& response)>& on_response,
-        const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
-    ) = 0;
-    virtual void put_file(
+        std::function<void(const amqhi::HttpResponse& response)> on_response,
+        std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+    );
+    void put_file(
         const std::string& url,
         const std::map<std::string, std::string>& headers,
         const std::string& file_path,
         const nlohmann::json& task_info,
-        const std::function<void(const amqhi::HttpResponse& response)>& on_response,
-        const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
-    ) = 0;
+        std::function<void(const amqhi::HttpResponse& response)> on_response,
+        std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+    );
     void put_file(
         const nlohmann::json& parts,
         const std::string& mime_type,
         const std::string& file_path,
         const nlohmann::json& task_info,
+        std::function<void(const amqhi::HttpResponse& response)> on_response,
+        std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+    );
+    void download_file(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
+        const std::string& file_path,
+        const nlohmann::json& task_info,
+        std::function<void(const amqhi::HttpResponse& response)> on_response,
+        std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+    );
+    void patch(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
+        const nlohmann::json& body,
+        std::function<void(const amqhi::HttpResponse& response)> on_response,
+        std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+    );
+    void put(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
+        const nlohmann::json& body,
+        std::function<void(const amqhi::HttpResponse& response)> on_response,
+        std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+    );
+    void destroy(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
+        std::function<void(const amqhi::HttpResponse& response)> on_response,
+        std::function<void(std::int16_t error_code, const std::string& data)> on_failure
+    );
+
+protected:
+    virtual void get_impl(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
         const std::function<void(const amqhi::HttpResponse& response)>& on_response,
         const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
-    );
-    virtual void download_file(
+    ) = 0;
+    virtual void post_impl(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
+        const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+        const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
+    ) = 0;
+    virtual void post_impl(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
+        const nlohmann::json& body,
+        const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+        const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
+    ) = 0;
+    virtual void put_file_impl(
         const std::string& url,
         const std::map<std::string, std::string>& headers,
         const std::string& file_path,
@@ -94,27 +144,39 @@ public:
         const std::function<void(const amqhi::HttpResponse& response)>& on_response,
         const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
     ) = 0;
-    virtual void patch_json(
+    virtual void download_file_impl(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
+        const std::string& file_path,
+        const nlohmann::json& task_info,
+        const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+        const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
+    ) = 0;
+    virtual void patch_impl(
         const std::string& url,
         const std::map<std::string, std::string>& headers,
         const nlohmann::json& body,
         const std::function<void(const amqhi::HttpResponse& response)>& on_response,
         const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
     ) = 0;
-    virtual void destroy(
+    virtual void put_impl(
+        const std::string& url,
+        const std::map<std::string, std::string>& headers,
+        const nlohmann::json& body,
+        const std::function<void(const amqhi::HttpResponse& response)>& on_response,
+        const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
+    ) = 0;
+    virtual void destroy_impl(
         const std::string& url,
         const std::map<std::string, std::string>& headers,
         const std::function<void(const amqhi::HttpResponse& response)>& on_response,
         const std::function<void(std::int16_t error_code, const std::string& data)>& on_failure
     ) = 0;
 
-protected:
-    void put_next_file(
-        std::size_t index
-    );
-
-private:
-    std::unique_ptr<PutMultipartFileTask> m_put_multipart_file_task;
+    void put_next_file(PutMultipartFileTask* task, size_t index);
+    void process_callbacks();
+    std::queue<std::function<void ()>> m_callback_queue;
+    bool m_is_processing_callbacks = false;
 };
 
 #endif //SHARED_NETWORK_PROVIDER_H

@@ -172,7 +172,8 @@ void ItemManagerBase::sync()
                                                            // If the item is already exists
                                                            {
                                                                auto& existing_item = pair->second;
-                                                               if (existing_item.status == item_status::AVAILABLE_OFFLINE)
+                                                               if (existing_item.status ==
+                                                                   item_status::AVAILABLE_OFFLINE)
                                                                {
                                                                    const auto old_path = item_local_file_path(
                                                                        m_core, existing_item);
@@ -250,7 +251,8 @@ void ItemManagerBase::sync()
                                    }
                                    else
                                    {
-                                       notify_request_failure(m_core.notifier(), SYNC_EVENTS_FETCH_FAILURE, response.status_code,
+                                       notify_request_failure(m_core.notifier(), SYNC_EVENTS_FETCH_FAILURE,
+                                                              response.status_code,
                                                               response.body);
                                    }
                                }, [this](std::int16_t error_code, const std::string& data)
@@ -532,39 +534,39 @@ void ItemManagerBase::create_folder(const ItemAttributes& item_attributes)
         headers["Content-Type"] = "application/json";
         headers["Authorization"] = "Bearer " + m_core.selected_user()->access_token;
 
-        m_core.network_provider().post_json(url,
-                                            headers,
-                                            body,
-                                            [this, url](
-                                            const Response& response)
-                                            {
-                                                if (response.status_code == 201)
-                                                {
-                                                    auto body = json::parse(response.body, nullptr, false);
-                                                    if (!body.is_discarded())
-                                                    {
-                                                        Item item = item_from_json(body);
-                                                        FolderMetadata folder_metadata =
-                                                            folder_metadata_from_json(body);
-                                                        item.setup_icon_type(folder_metadata);
-                                                        item.save(m_core.database_provider().database());
-                                                        apply_create_item(item);
-                                                        json data;
-                                                        data["id"] = item.id.to_string();
-                                                        data["parent_id"] = item.parent_id.to_string();
-                                                        data["type"] = item.type;
-                                                        m_core.notifier().notify(ITEM_CREATE_SUCCESS, data);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
-                                                                           response.status_code,
-                                                                           response.body, url);
-                                                }
-                                            }, [](std::int16_t error_code, const std::string& data)
-                                            {
-                                            });
+        m_core.network_provider().post(url,
+                                       headers,
+                                       body,
+                                       [this, url](
+                                       const Response& response)
+                                       {
+                                           if (response.status_code == 201)
+                                           {
+                                               auto body = json::parse(response.body, nullptr, false);
+                                               if (!body.is_discarded())
+                                               {
+                                                   Item item = item_from_json(body);
+                                                   FolderMetadata folder_metadata =
+                                                       folder_metadata_from_json(body);
+                                                   item.setup_icon_type(folder_metadata);
+                                                   item.save(m_core.database_provider().database());
+                                                   apply_create_item(item);
+                                                   json data;
+                                                   data["id"] = item.id.to_string();
+                                                   data["parent_id"] = item.parent_id.to_string();
+                                                   data["type"] = item.type;
+                                                   m_core.notifier().notify(ITEM_CREATE_SUCCESS, data);
+                                               }
+                                           }
+                                           else
+                                           {
+                                               notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
+                                                                      response.status_code,
+                                                                      response.body, url);
+                                           }
+                                       }, [](std::int16_t error_code, const std::string& data)
+                                       {
+                                       });
     });
 }
 
@@ -573,88 +575,88 @@ void ItemManagerBase::complete_upload_multipart(const Item& item, const std::str
                                                 const json& parts)
 {
     api::files::complete_multipart_upload(m_core,
-                                            item.id.to_string(),
-                                            mime_type,
-                                            checksum,
-                                            size,
-                                            parts,
-                                            upload_id,
-                                            [this, item, checksum, mime_type, size](
-                                            const Response& response)
-                                            {
-                                                if (response.status_code == 200)
-                                                {
-                                                    FileMetadata file_metadata;
-                                                    file_metadata.id = item.id;
-                                                    file_metadata.checksum = checksum;
-                                                    file_metadata.mime_type = mime_type;
-                                                    file_metadata.size = size;
-                                                    cache_file_metadata(m_core.database_provider().database(),
-                                                                        file_metadata);
-                                                    m_items[item.id] = item;
-                                                    m_items[item.id].status = item_status::ONLINE_ONLY;
-                                                    m_items[item.id].setup_icon_type(file_metadata);
-                                                    m_items[item.id].save(m_core.database_provider().database());
-                                                    json data;
-                                                    data["id"] = item.id.to_string();
-                                                    data["parent_id"] = item.parent_id.to_string();
-                                                    m_core.notifier().notify(ITEM_CREATE_SUCCESS, data);
-                                                    download_thumbnail(item.id);
-                                                }
-                                                else
-                                                {
-                                                    apply_delete_item(item.id, item.parent_id);
-                                                    notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
-                                                                           response.status_code,
-                                                                           response.body);
-                                                }
-                                            }, [this](std::int16_t error_code, const std::string& data)
-                                            {
-                                                handle_network_error(m_core.notifier(), error_code, data);
-                                            });
+                                          item.id.to_string(),
+                                          mime_type,
+                                          checksum,
+                                          size,
+                                          parts,
+                                          upload_id,
+                                          [this, item, checksum, mime_type, size](
+                                          const Response& response)
+                                          {
+                                              if (response.status_code == 200)
+                                              {
+                                                  FileMetadata file_metadata;
+                                                  file_metadata.id = item.id;
+                                                  file_metadata.checksum = checksum;
+                                                  file_metadata.mime_type = mime_type;
+                                                  file_metadata.size = size;
+                                                  cache_file_metadata(m_core.database_provider().database(),
+                                                                      file_metadata);
+                                                  m_items[item.id] = item;
+                                                  m_items[item.id].status = item_status::ONLINE_ONLY;
+                                                  m_items[item.id].setup_icon_type(file_metadata);
+                                                  m_items[item.id].save(m_core.database_provider().database());
+                                                  json data;
+                                                  data["id"] = item.id.to_string();
+                                                  data["parent_id"] = item.parent_id.to_string();
+                                                  m_core.notifier().notify(ITEM_CREATE_SUCCESS, data);
+                                                  download_thumbnail(item.id);
+                                              }
+                                              else
+                                              {
+                                                  apply_delete_item(item.id, item.parent_id);
+                                                  notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
+                                                                         response.status_code,
+                                                                         response.body);
+                                              }
+                                          }, [this](std::int16_t error_code, const std::string& data)
+                                          {
+                                              handle_network_error(m_core.notifier(), error_code, data);
+                                          });
 }
 
 void ItemManagerBase::complete_upload(const Item& item, const std::string& checksum, std::uint64_t size,
                                       const std::string& mime_type)
 {
     api::files::complete_upload(m_core,
-        item.id.to_string(),
-                                        mime_type,
-                                        checksum,
-                                        size,
-                                        [this, item, checksum, mime_type, size](
-                                        const Response& response)
-                                        {
-                                            if (response.status_code == 200)
-                                            {
-                                                FileMetadata file_metadata;
-                                                file_metadata.id = item.id;
-                                                file_metadata.checksum = checksum;
-                                                file_metadata.mime_type = mime_type;
-                                                file_metadata.size = size;
-                                                cache_file_metadata(m_core.database_provider().database(),
-                                                                    file_metadata);
-                                                m_items[item.id] = item;
-                                                m_items[item.id].status = item_status::ONLINE_ONLY;
-                                                m_items[item.id].setup_icon_type(file_metadata);
-                                                m_items[item.id].save(m_core.database_provider().database());
-                                                json data;
-                                                data["id"] = item.id.to_string();
-                                                data["parent_id"] = item.parent_id.to_string();
-                                                m_core.notifier().notify(ITEM_CREATE_SUCCESS, data);
-                                                download_thumbnail(item.id);
-                                            }
-                                            else
-                                            {
-                                                apply_delete_item(item.id, item.parent_id);
-                                                notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
-                                                                       response.status_code,
-                                                                       response.body);
-                                            }
-                                        }, [this](std::int16_t error_code, const std::string& data)
-                                        {
-                                            handle_network_error(m_core.notifier(), error_code, data);
-                                        });
+                                item.id.to_string(),
+                                mime_type,
+                                checksum,
+                                size,
+                                [this, item, checksum, mime_type, size](
+                                const Response& response)
+                                {
+                                    if (response.status_code == 200)
+                                    {
+                                        FileMetadata file_metadata;
+                                        file_metadata.id = item.id;
+                                        file_metadata.checksum = checksum;
+                                        file_metadata.mime_type = mime_type;
+                                        file_metadata.size = size;
+                                        cache_file_metadata(m_core.database_provider().database(),
+                                                            file_metadata);
+                                        m_items[item.id] = item;
+                                        m_items[item.id].status = item_status::ONLINE_ONLY;
+                                        m_items[item.id].setup_icon_type(file_metadata);
+                                        m_items[item.id].save(m_core.database_provider().database());
+                                        json data;
+                                        data["id"] = item.id.to_string();
+                                        data["parent_id"] = item.parent_id.to_string();
+                                        m_core.notifier().notify(ITEM_CREATE_SUCCESS, data);
+                                        download_thumbnail(item.id);
+                                    }
+                                    else
+                                    {
+                                        apply_delete_item(item.id, item.parent_id);
+                                        notify_request_failure(m_core.notifier(), ITEM_CREATE_FAILURE,
+                                                               response.status_code,
+                                                               response.body);
+                                    }
+                                }, [this](std::int16_t error_code, const std::string& data)
+                                {
+                                    handle_network_error(m_core.notifier(), error_code, data);
+                                });
 }
 
 void ItemManagerBase::update_item(const UUID& id, const ItemAttributes& item_attributes)
@@ -667,37 +669,37 @@ void ItemManagerBase::update_item(const UUID& id, const ItemAttributes& item_att
         headers["Authorization"] = "Bearer " + m_core.selected_user()->access_token;
         nlohmann::json body = item_attributes;
 
-        m_core.network_provider().patch_json(url,
-                                             headers,
-                                             body,
-                                             [this, id, item_attributes](const Response& response)
-                                             {
-                                                 if (response.status_code == 200)
-                                                 {
-                                                     m_items[id].name = item_attributes.name;
-                                                     m_items[id].parent_id = item_attributes.parent_id;
-                                                     m_items[id].app_scope = item_attributes.app_scope;
-                                                     m_items[id].comment = item_attributes.comment;
-                                                     m_items[id].event_at = item_attributes.event_at;
-                                                     m_items[id].encrypted = item_attributes.encrypted;
-                                                     m_items[id].save(m_core.database_provider().database());
-                                                     json data;
-                                                     data["id"] = id.to_string();
-                                                     data["parent_id"] = m_items[id].parent_id.to_string();
-                                                     sort_items(m_items[id].parent_id);
-                                                     m_core.notifier().notify(ITEM_UPDATE_SUCCESS, data);
-                                                 }
-                                                 else
-                                                 {
-                                                     nlohmann::json args;
-                                                     args["status_code"] = response.status_code;
-                                                     args["response"] = response.body;
-                                                     m_core.notifier().notify(ITEM_UPDATE_FAILURE, args);
-                                                 }
-                                             }, [this](std::int16_t error_code, const std::string& data)
-                                             {
-                                                 handle_network_error(m_core.notifier(), error_code, data);
-                                             });
+        m_core.network_provider().patch(url,
+                                        headers,
+                                        body,
+                                        [this, id, item_attributes](const Response& response)
+                                        {
+                                            if (response.status_code == 200)
+                                            {
+                                                m_items[id].name = item_attributes.name;
+                                                m_items[id].parent_id = item_attributes.parent_id;
+                                                m_items[id].app_scope = item_attributes.app_scope;
+                                                m_items[id].comment = item_attributes.comment;
+                                                m_items[id].event_at = item_attributes.event_at;
+                                                m_items[id].encrypted = item_attributes.encrypted;
+                                                m_items[id].save(m_core.database_provider().database());
+                                                json data;
+                                                data["id"] = id.to_string();
+                                                data["parent_id"] = m_items[id].parent_id.to_string();
+                                                sort_items(m_items[id].parent_id);
+                                                m_core.notifier().notify(ITEM_UPDATE_SUCCESS, data);
+                                            }
+                                            else
+                                            {
+                                                nlohmann::json args;
+                                                args["status_code"] = response.status_code;
+                                                args["response"] = response.body;
+                                                m_core.notifier().notify(ITEM_UPDATE_FAILURE, args);
+                                            }
+                                        }, [this](std::int16_t error_code, const std::string& data)
+                                        {
+                                            handle_network_error(m_core.notifier(), error_code, data);
+                                        });
     });
 }
 
@@ -714,34 +716,34 @@ void ItemManagerBase::move_item(const UUID& id, const UUID& parent_id)
         {
             body["parent_id"] = parent_id.to_string();
         }
-        m_core.network_provider().patch_json(url,
-                                             headers,
-                                             body,
-                                             [this, id, parent_id](const Response& response)
-                                             {
-                                                 if (response.status_code == 200)
-                                                 {
-                                                     UUID old_parent_id = m_items[id].parent_id;
-                                                     json data;
-                                                     data["id"] = id.to_string();
-                                                     data["parent_id"] = parent_id.to_string();
-                                                     data["old_parent_id"] = old_parent_id.to_string();
-                                                     m_items[id].parent_id = parent_id;
-                                                     m_items[id].save(m_core.database_provider().database());
-                                                     apply_move_item(id, old_parent_id, parent_id);
-                                                     m_core.notifier().notify(ITEM_MOVE_SUCCESS, data);
-                                                 }
-                                                 else
-                                                 {
-                                                     nlohmann::json args;
-                                                     args["status_code"] = response.status_code;
-                                                     args["response"] = response.body;
-                                                     m_core.notifier().notify(ITEM_MOVE_FAILURE, args);
-                                                 }
-                                             }, [this](std::int16_t error_code, const std::string& data)
-                                             {
-                                                 handle_network_error(m_core.notifier(), error_code, data);
-                                             });
+        m_core.network_provider().patch(url,
+                                        headers,
+                                        body,
+                                        [this, id, parent_id](const Response& response)
+                                        {
+                                            if (response.status_code == 200)
+                                            {
+                                                UUID old_parent_id = m_items[id].parent_id;
+                                                json data;
+                                                data["id"] = id.to_string();
+                                                data["parent_id"] = parent_id.to_string();
+                                                data["old_parent_id"] = old_parent_id.to_string();
+                                                m_items[id].parent_id = parent_id;
+                                                m_items[id].save(m_core.database_provider().database());
+                                                apply_move_item(id, old_parent_id, parent_id);
+                                                m_core.notifier().notify(ITEM_MOVE_SUCCESS, data);
+                                            }
+                                            else
+                                            {
+                                                nlohmann::json args;
+                                                args["status_code"] = response.status_code;
+                                                args["response"] = response.body;
+                                                m_core.notifier().notify(ITEM_MOVE_FAILURE, args);
+                                            }
+                                        }, [this](std::int16_t error_code, const std::string& data)
+                                        {
+                                            handle_network_error(m_core.notifier(), error_code, data);
+                                        });
     });
 }
 
@@ -753,30 +755,32 @@ void ItemManagerBase::move_items(const std::vector<UUID>& ids, const UUID& paren
 
     m_core.notifier().notify(ITEMS_MOVE_STARTED, old_parent_id.to_string());
     api::items::move_items(m_core, ids, parent_id, [this, ids, parent_id, old_parent_id](const Response& response)
-    {
-        if (response.status_code == 200)
-        {
-            for (const auto& id : ids)
-            {
-                m_items[id].parent_id = parent_id;
-                m_items[id].save(m_core.database_provider().database());
-            }
-            m_core.notifier().notify(ITEMS_MOVE_SUCCESS);
-        }
-        else
-        {
-            // rollback to previous state
-            vector_utils::subtract<UUID>(m_id_lists[parent_id], ids);
-            m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
-            sort_items(old_parent_id);
-            m_core.notifier().notify(ITEMS_MOVE_FAILURE, response.body);
-        }
-    }, [this, ids, parent_id, old_parent_id](std::int16_t error_code, const std::string& data)
                            {
-        vector_utils::subtract<UUID>(m_id_lists[parent_id], ids);
-      m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
-      sort_items(old_parent_id);
-      m_core.notifier().notify(ITEMS_MOVE_FAILURE);
+                               if (response.status_code == 200)
+                               {
+                                   for (const auto& id : ids)
+                                   {
+                                       m_items[id].parent_id = parent_id;
+                                       m_items[id].save(m_core.database_provider().database());
+                                   }
+                                   m_core.notifier().notify(ITEMS_MOVE_SUCCESS);
+                               }
+                               else
+                               {
+                                   // rollback to previous state
+                                   vector_utils::subtract<UUID>(m_id_lists[parent_id], ids);
+                                   m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(),
+                                                                    ids.end());
+                                   sort_items(old_parent_id);
+                                   m_core.notifier().notify(ITEMS_MOVE_FAILURE, response.body);
+                               }
+                           }, [this, ids, parent_id, old_parent_id](std::int16_t error_code, const std::string& data)
+                           {
+                               vector_utils::subtract<UUID>(m_id_lists[parent_id], ids);
+                               m_id_lists[old_parent_id].
+                                   insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+                               sort_items(old_parent_id);
+                               m_core.notifier().notify(ITEMS_MOVE_FAILURE);
                            });
 }
 
@@ -791,30 +795,30 @@ void ItemManagerBase::rename_item(const UUID& id, const std::string& name)
         nlohmann::json body;
         body["name"] = name;
 
-        m_core.network_provider().patch_json(url,
-                                             headers,
-                                             body,
-                                             [this, id, name](const Response& response)
-                                             {
-                                                 if (response.status_code == 200)
-                                                 {
-                                                     nlohmann::json data;
-                                                     m_items[id].name = name;
-                                                     m_items[id].save(m_core.database_provider().database());
-                                                     data["id"] = id.to_string();
-                                                     data["parent_id"] = m_items[id].parent_id.to_string();
-                                                     m_core.notifier().notify(ITEM_UPDATE_SUCCESS, data);
-                                                 }
-                                                 else
-                                                 {
-                                                     nlohmann::json args;
-                                                     args["status_code"] = response.status_code;
-                                                     args["response"] = response.body;
-                                                     m_core.notifier().notify(ITEM_UPDATE_FAILURE, args);
-                                                 }
-                                             }, [](std::int16_t error_code, const std::string& data)
-                                             {
-                                             });
+        m_core.network_provider().patch(url,
+                                        headers,
+                                        body,
+                                        [this, id, name](const Response& response)
+                                        {
+                                            if (response.status_code == 200)
+                                            {
+                                                nlohmann::json data;
+                                                m_items[id].name = name;
+                                                m_items[id].save(m_core.database_provider().database());
+                                                data["id"] = id.to_string();
+                                                data["parent_id"] = m_items[id].parent_id.to_string();
+                                                m_core.notifier().notify(ITEM_UPDATE_SUCCESS, data);
+                                            }
+                                            else
+                                            {
+                                                nlohmann::json args;
+                                                args["status_code"] = response.status_code;
+                                                args["response"] = response.body;
+                                                m_core.notifier().notify(ITEM_UPDATE_FAILURE, args);
+                                            }
+                                        }, [](std::int16_t error_code, const std::string& data)
+                                        {
+                                        });
     });
 }
 
@@ -865,32 +869,34 @@ void ItemManagerBase::soft_delete_items(const std::vector<UUID>& ids, const UUID
 
     m_core.notifier().notify(ITEMS_SOFT_DELETE_STARTED, old_parent_id.to_string());
     api::items::soft_delete_items(m_core, ids, [this, ids, old_parent_id](const Response& response)
-    {
-        if (response.status_code == 200)
-        {
-            for (const auto& id : ids)
-            {
-                m_items[id].deleted_at = current_date_time_utc_int64();
-                m_items[id].parent_id = special_folder::TRASH;
-                m_items[id].save(m_core.database_provider().database());
-            }
-            m_core.notifier().notify(ITEMS_SOFT_DELETE_SUCCESS);
-        }
-        else
-        {
-            // rollback to previous state
-            vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
-            m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
-            sort_items(old_parent_id);
-            m_core.notifier().notify(ITEMS_SOFT_DELETE_FAILURE, response.body);
-        }
-    }, [this, ids, old_parent_id](std::int16_t error_code, const std::string& data)
-                           {
-        vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
-         m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
-         sort_items(old_parent_id);
-         m_core.notifier().notify(ITEMS_SOFT_DELETE_FAILURE);
-                           });
+                                  {
+                                      if (response.status_code == 200)
+                                      {
+                                          for (const auto& id : ids)
+                                          {
+                                              m_items[id].deleted_at = current_date_time_utc_int64();
+                                              m_items[id].parent_id = special_folder::TRASH;
+                                              m_items[id].save(m_core.database_provider().database());
+                                          }
+                                          m_core.notifier().notify(ITEMS_SOFT_DELETE_SUCCESS);
+                                      }
+                                      else
+                                      {
+                                          // rollback to previous state
+                                          vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
+                                          m_id_lists[old_parent_id].insert(
+                                              m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+                                          sort_items(old_parent_id);
+                                          m_core.notifier().notify(ITEMS_SOFT_DELETE_FAILURE, response.body);
+                                      }
+                                  }, [this, ids, old_parent_id](std::int16_t error_code, const std::string& data)
+                                  {
+                                      vector_utils::subtract<UUID>(m_id_lists[special_folder::TRASH], ids);
+                                      m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(),
+                                                                       ids.end());
+                                      sort_items(old_parent_id);
+                                      m_core.notifier().notify(ITEMS_SOFT_DELETE_FAILURE);
+                                  });
 }
 
 void ItemManagerBase::restore_item(const UUID& id)
@@ -903,47 +909,47 @@ void ItemManagerBase::restore_item(const UUID& id)
         headers["Content-Type"] = "application/json";
         headers["Authorization"] = "Bearer " + m_core.selected_user()->access_token;
 
-        m_core.network_provider().patch_json(url,
-                                             headers,
-                                             body,
-                                             [this, id](const Response& response)
-                                             {
-                                                 if (response.status_code == 200)
-                                                 {
-                                                     UUID old_parent_id = m_items[id].parent_id;
-                                                     nlohmann::json body = json::parse(response.body, nullptr, false);
-                                                     m_items[id].deleted_at = std::nullopt;
-                                                     if (auto it = body.find("parent_id"); it != body.end() && it->
-                                                         is_string())
-                                                     {
-                                                         m_items[id].parent_id =
-                                                             UUID::from_string(it->get<std::string>());
-                                                     }
-                                                     else
-                                                     {
-                                                         m_items[id].parent_id = special_folder::HOME;
-                                                     }
+        m_core.network_provider().patch(url,
+                                        headers,
+                                        body,
+                                        [this, id](const Response& response)
+                                        {
+                                            if (response.status_code == 200)
+                                            {
+                                                UUID old_parent_id = m_items[id].parent_id;
+                                                nlohmann::json body = json::parse(response.body, nullptr, false);
+                                                m_items[id].deleted_at = std::nullopt;
+                                                if (auto it = body.find("parent_id"); it != body.end() && it->
+                                                    is_string())
+                                                {
+                                                    m_items[id].parent_id =
+                                                        UUID::from_string(it->get<std::string>());
+                                                }
+                                                else
+                                                {
+                                                    m_items[id].parent_id = special_folder::HOME;
+                                                }
 
-                                                     m_items[id].save(m_core.database_provider().database());
-                                                     nlohmann::json data;
-                                                     data["id"] = id.to_string();
-                                                     data["parent_id"] = m_items[id].parent_id.to_string();
-                                                     data["old_parent_id"] = old_parent_id.to_string();
+                                                m_items[id].save(m_core.database_provider().database());
+                                                nlohmann::json data;
+                                                data["id"] = id.to_string();
+                                                data["parent_id"] = m_items[id].parent_id.to_string();
+                                                data["old_parent_id"] = old_parent_id.to_string();
 
-                                                     apply_move_item(id, old_parent_id, m_items[id].parent_id);
-                                                     m_core.notifier().notify(ITEM_RESTORE_SUCCESS, data);
-                                                 }
-                                                 else
-                                                 {
-                                                     std::map<std::string, std::string> args;
-                                                     args["status_code"] = std::to_string(response.status_code);
-                                                     args["response"] = response.body;
-                                                     m_core.notifier().notify(ITEM_RESTORE_FAILURE, args);
-                                                 }
-                                             }, [this](std::int16_t error_code, const std::string& data)
-                                             {
-                                                 handle_network_error(m_core.notifier(), error_code, data);
-                                             });
+                                                apply_move_item(id, old_parent_id, m_items[id].parent_id);
+                                                m_core.notifier().notify(ITEM_RESTORE_SUCCESS, data);
+                                            }
+                                            else
+                                            {
+                                                std::map<std::string, std::string> args;
+                                                args["status_code"] = std::to_string(response.status_code);
+                                                args["response"] = response.body;
+                                                m_core.notifier().notify(ITEM_RESTORE_FAILURE, args);
+                                            }
+                                        }, [this](std::int16_t error_code, const std::string& data)
+                                        {
+                                            handle_network_error(m_core.notifier(), error_code, data);
+                                        });
     });
 }
 
@@ -953,57 +959,62 @@ void ItemManagerBase::restore_items(const std::vector<UUID>& ids, const UUID& ol
 
     m_core.notifier().notify(ITEMS_RESTORE_STARTED, old_parent_id.to_string());
     api::items::restore_items(m_core, ids, [this, ids, old_parent_id](const Response& response)
-    {
-        if (response.status_code == 200)
-        {
-            json body = json::parse(response.body, nullptr, false);
-            if (body.is_discarded())
-            {
-                m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
-       sort_items(old_parent_id);
-                m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response.body);
-                return;
-            }
-            if (!body.is_array())
-            {
-                m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
-       sort_items(old_parent_id);
-                m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response.body);
-        return;
-            }
+                              {
+                                  if (response.status_code == 200)
+                                  {
+                                      json body = json::parse(response.body, nullptr, false);
+                                      if (body.is_discarded())
+                                      {
+                                          m_id_lists[old_parent_id].insert(
+                                              m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+                                          sort_items(old_parent_id);
+                                          m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response.body);
+                                          return;
+                                      }
+                                      if (!body.is_array())
+                                      {
+                                          m_id_lists[old_parent_id].insert(
+                                              m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
+                                          sort_items(old_parent_id);
+                                          m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response.body);
+                                          return;
+                                      }
 
-            std::unordered_set<UUID> updated_folder_ids;
-            for (const auto& element: body)
-            {
-                UUID id = UUID::from_string(json_utils::get_string(element, "id"));
-                UUID original_parent_id = UUID::from_string(json_utils::get_string(element, "parent_id"));
-                m_items[id].parent_id = original_parent_id;
-                m_items[id].save(m_core.database_provider().database());
-                m_id_lists[original_parent_id].push_back(id);
-                updated_folder_ids.emplace(original_parent_id);
-            }
+                                      std::unordered_set<UUID> updated_folder_ids;
+                                      for (const auto& element : body)
+                                      {
+                                          UUID id = UUID::from_string(json_utils::get_string(element, "id"));
+                                          UUID original_parent_id = UUID::from_string(
+                                              json_utils::get_string(element, "parent_id"));
+                                          m_items[id].parent_id = original_parent_id;
+                                          m_items[id].save(m_core.database_provider().database());
+                                          m_id_lists[original_parent_id].push_back(id);
+                                          updated_folder_ids.emplace(original_parent_id);
+                                      }
 
-            for (const auto& folder_id: updated_folder_ids)
-            {
-                sort_items(folder_id);
-            }
+                                      for (const auto& folder_id : updated_folder_ids)
+                                      {
+                                          sort_items(folder_id);
+                                      }
 
-            m_core.notifier().notify(ITEMS_RESTORE_SUCCESS);
-        }
-        else
-        {
-            // rollback to previous state
-            m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
-            sort_items(old_parent_id);
-            m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response.body);
-        }
-    }, [this, ids, old_parent_id](std::int16_t error_code, const std::string& data)
-                           {
-        // rollback to previous state
-        m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(), ids.end());
-sort_items(old_parent_id);
-        m_core.notifier().notify(ITEMS_RESTORE_FAILURE);
-                           });
+                                      m_core.notifier().notify(ITEMS_RESTORE_SUCCESS);
+                                  }
+                                  else
+                                  {
+                                      // rollback to previous state
+                                      m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(),
+                                                                       ids.end());
+                                      sort_items(old_parent_id);
+                                      m_core.notifier().notify(ITEMS_RESTORE_FAILURE, response.body);
+                                  }
+                              }, [this, ids, old_parent_id](std::int16_t error_code, const std::string& data)
+                              {
+                                  // rollback to previous state
+                                  m_id_lists[old_parent_id].insert(m_id_lists[old_parent_id].end(), ids.begin(),
+                                                                   ids.end());
+                                  sort_items(old_parent_id);
+                                  m_core.notifier().notify(ITEMS_RESTORE_FAILURE);
+                              });
 }
 
 void ItemManagerBase::delete_item(const UUID& id)
@@ -1054,39 +1065,41 @@ void ItemManagerBase::delete_items(const std::vector<UUID>& ids)
 
     m_core.notifier().notify(ITEMS_DELETE_STARTED);
     api::items::soft_delete_items(m_core, ids, [this, ids](const Response& response)
-    {
-        if (response.status_code == 200)
-        {
-            for (const auto& id : ids)
-            {
-                item_delete_on_local(m_core, m_items[id]);
-                switch (m_items[id].type)
-                {
-                    case item_type::FILE:
-                    delete_file_metadata(m_core.database_provider().database(),
-                                                                         m_file_metadata[id]);
-                    break;
-                    case item_type::FOLDER:
-                    delete_folder_metadata(m_core.database_provider().database(), id);
-                    default:
-                    break;
-                }
-            }
-            m_core.notifier().notify(ITEMS_DELETE_SUCCESS);
-        }
-        else
-        {
-            // rollback to previous state
-            m_id_lists[special_folder::TRASH].insert(m_id_lists[special_folder::TRASH].end(), ids.begin(), ids.end());
-            sort_items(special_folder::TRASH);
-            m_core.notifier().notify(ITEMS_DELETE_FAILURE, response.body);
-        }
-    }, [this, ids](std::int16_t error_code, const std::string& data)
-                           {
-        m_id_lists[special_folder::TRASH].insert(m_id_lists[special_folder::TRASH].end(), ids.begin(), ids.end());
-         sort_items(special_folder::TRASH);
-        m_core.notifier().notify(ITEMS_DELETE_FAILURE);
-                           });
+                                  {
+                                      if (response.status_code == 200)
+                                      {
+                                          for (const auto& id : ids)
+                                          {
+                                              item_delete_on_local(m_core, m_items[id]);
+                                              switch (m_items[id].type)
+                                              {
+                                              case item_type::FILE:
+                                                  delete_file_metadata(m_core.database_provider().database(),
+                                                                       m_file_metadata[id]);
+                                                  break;
+                                              case item_type::FOLDER:
+                                                  delete_folder_metadata(m_core.database_provider().database(), id);
+                                              default:
+                                                  break;
+                                              }
+                                          }
+                                          m_core.notifier().notify(ITEMS_DELETE_SUCCESS);
+                                      }
+                                      else
+                                      {
+                                          // rollback to previous state
+                                          m_id_lists[special_folder::TRASH].insert(
+                                              m_id_lists[special_folder::TRASH].end(), ids.begin(), ids.end());
+                                          sort_items(special_folder::TRASH);
+                                          m_core.notifier().notify(ITEMS_DELETE_FAILURE, response.body);
+                                      }
+                                  }, [this, ids](std::int16_t error_code, const std::string& data)
+                                  {
+                                      m_id_lists[special_folder::TRASH].insert(
+                                          m_id_lists[special_folder::TRASH].end(), ids.begin(), ids.end());
+                                      sort_items(special_folder::TRASH);
+                                      m_core.notifier().notify(ITEMS_DELETE_FAILURE);
+                                  });
 }
 
 void ItemManagerBase::download_thumbnails(int16_t event_code)
@@ -1097,63 +1110,24 @@ void ItemManagerBase::download_thumbnails(int16_t event_code)
         return;
     }
 
-    if (!m_items_transfer_contexts)
+    int* count = new int(0);
+    for (auto& it : m_items)
     {
-        m_items_transfer_contexts = std::make_unique<std::vector<ItemsTransferContext>>();
-    }
-    if (m_items_transfer_contexts->empty() || m_items_transfer_contexts->at(0).type != DOWNLOAD_THUMBNAILS)
-    {
-        ItemsTransferContext context;
-        context.ids = {};
-        context.ids.reserve(m_items.size());
-        context.type = DOWNLOAD_THUMBNAILS;
-        context.event_code = event_code;
-        for (const auto& [id, item] : m_items)
+        const auto& id = it.first;
+        if (m_file_metadata[id].mime_type.compare(0, 6, "image/") != 0 && m_file_metadata[id].mime_type.
+            compare(0, 6, "video/") != 0 && m_file_metadata[id].mime_type.compare(0, 6, "audio/") != 0)
         {
-            context.ids.push_back(id);
+            (*count)++;
+            if (*count == m_items.size())
+            {
+                delete count;
+                m_core.notifier().notify(event_code);
+            }
+            continue;
         }
 
-        m_items_transfer_contexts->push_back(std::move(context));
-    }
-
-    if (m_items_transfer_contexts->at(0).type == DOWNLOAD_THUMBNAILS)
-    {
-        download_next_thumbnail();
-    }
-}
-
-void ItemManagerBase::download_next_thumbnail()
-{
-    auto& context = m_items_transfer_contexts->at(0);
-    if (context.index >= context.ids.size())
-    {
-        m_items_transfer_contexts->erase(m_items_transfer_contexts->begin());
-        m_core.notifier().notify(context.event_code);
-        process_next_context();
-        return;
-    }
-
-    const auto& id = context.ids[context.index];
-    if (m_items[id].type != item_type::FILE)
-    {
-        m_items_transfer_contexts->at(0).index++;
-        download_next_thumbnail();
-        return;
-    }
-    if (m_file_metadata[id].mime_type.compare(0, 6, "image/") != 0 && m_file_metadata[id].mime_type.
-        compare(0, 6, "video/") != 0 && m_file_metadata[id].mime_type.compare(0, 6, "audio/") != 0)
-    {
-        m_items_transfer_contexts->at(0).index++;
-        download_next_thumbnail();
-        return;
-    }
-
-    api::request_with_auto_refresh(m_core, [this]()
-    {
-        auto& context =  m_items_transfer_contexts->at(0);
-        const auto& id = context.ids[context.index];
         api::items::get_thumbnail_download_url(m_core, id.to_string(),
-                                               [this, id](
+                                               [this, id, count, event_code](
                                                const Response& response)
                                                {
                                                    fs::path thumbnail_path = item_thumbnail_path(m_core, id);
@@ -1174,35 +1148,51 @@ void ItemManagerBase::download_next_thumbnail()
                                                            headers,
                                                            thumbnail_path.string(),
                                                            task_info,
-                                                           [this](
+                                                           [this, count, event_code](
                                                            const Response& response)
                                                            {
-                                                               m_items_transfer_contexts->at(0).index++;
-                                                               download_next_thumbnail();
-                                                           }, [this](
+                                                               (*count)++;
+                                                               if (*count == m_items.size())
+                                                               {
+                                                                   delete count;
+                                                                   m_core.notifier().notify(event_code);
+                                                               }
+                                                           }, [this, count, event_code](
                                                            std::int16_t error_code, const std::string& data)
                                                            {
-                                                               m_items_transfer_contexts->at(0).index++;
-                                                               download_next_thumbnail();
+                                                               (*count)++;
+                                                               if (*count == m_items.size())
+                                                               {
+                                                                   delete count;
+                                                                   m_core.notifier().notify(event_code);
+                                                               }
                                                            });
                                                    }
                                                    else
                                                    {
+                                                       (*count)++;
                                                        nlohmann::json data;
                                                        data["status_code"] = response.status_code;
                                                        data["response"] = response.body;
                                                        data["id"] = id.to_string();
                                                        m_core.notifier().notify(ITEM_THUMBNAIL_DOWNLOAD_FAILURE, data);
-                                                       m_items_transfer_contexts->at(0).index++;
-                                                       download_next_thumbnail();
+                                                       if (*count == m_items.size())
+                                                       {
+                                                           delete count;
+                                                           m_core.notifier().notify(event_code);
+                                                       }
                                                    }
-                                               }, [this](
+                                               }, [this, count, event_code](
                                                std::int16_t error_code, const std::string& data)
                                                {
-                                                   m_items_transfer_contexts->at(0).index++;
-                                                   download_next_thumbnail();
+                                                   (*count)++;
+                                                   if (*count == m_items.size())
+                                                   {
+                                                       delete count;
+                                                       m_core.notifier().notify(event_code);
+                                                   }
                                                });
-    });
+    }
 }
 
 void ItemManagerBase::refresh_phase1_files()
@@ -1216,7 +1206,8 @@ void ItemManagerBase::refresh_phase1_files()
                                       auto files_body = json::parse(response.body, nullptr, false);
                                       if (files_body.is_discarded() || !files_body.is_object())
                                       {
-                                          notify_request_failure(m_core.notifier(), REFRESH_FAILURE, response.status_code,
+                                          notify_request_failure(m_core.notifier(), REFRESH_FAILURE,
+                                                                 response.status_code,
                                                                  response.body);
                                       }
                                       else
@@ -1256,7 +1247,8 @@ void ItemManagerBase::refresh_phase1_files()
                                   }
                                   else
                                   {
-                                      notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE, response.status_code,
+                                      notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
+                                                             response.status_code,
                                                              response.body);
                                       refresh_phase2_folders();
                                   }
@@ -1409,6 +1401,7 @@ void ItemManagerBase::make_item_available_offline(const UUID& id)
         {
             json data;
             m_items[id].status = item_status::AVAILABLE_OFFLINE;
+            m_items[id].save(m_core.database_provider().database());
             data["id"] = id.to_string();
             data["parent_id"] = m_items[id].parent_id.to_string();
             m_core.notifier().notify(ITEM_MAKE_AVAILABLE_OFFLINE_SUCCESS, data);
@@ -1547,24 +1540,5 @@ void ItemManagerBase::apply_delete_item(const UUID& id, const UUID& parent_id)
         list.erase(std::remove(list.begin(), list.end(), id),
                    list.end());
         m_items.erase(id);
-    }
-}
-
-void ItemManagerBase::process_next_context()
-{
-    if (m_items_transfer_contexts->empty())
-    {
-        m_items_transfer_contexts.reset();
-        return;
-    }
-    switch (m_items_transfer_contexts->at(0).type)
-    {
-    case DOWNLOAD_THUMBNAILS:
-        download_next_thumbnail();
-        break;
-    default:
-        m_items_transfer_contexts->erase(m_items_transfer_contexts->begin());
-        process_next_context();
-        break;
     }
 }
