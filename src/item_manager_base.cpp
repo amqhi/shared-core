@@ -417,7 +417,7 @@ void ItemManagerBase::create_file(const ItemAttributes& item_attributes, const s
                                             task_info["id"] = item.id.to_string();
                                             task_info["name"] = item.name;
                                             task_info["type"] = transfer_type::MULTIPART_FILE;
-                                            task_info["file_size"] = size;
+                                            task_info["file_size"] = std::to_string(size);
                                             task_info["parent_id"] = item.parent_id.to_string();
 
                                             m_core.network_provider().put_file(
