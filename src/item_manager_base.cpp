@@ -1418,23 +1418,20 @@ void ItemManagerBase::make_item_available_offline(const UUID& id)
 
 void ItemManagerBase::download_item(const UUID& id, const std::string& file_path)
 {
-    api::request_with_auto_refresh(m_core, [this, id, &file_path]()
+    download_item(id, file_path, [this, id](const Response& response)
     {
-        download_item(id, file_path, [this, id](const Response& response)
+        if (response.status_code == 200)
         {
-            if (response.status_code == 200)
-            {
-                nlohmann::json data;
-                data["id"] = id.to_string();
-                data["parent_id"] = m_items[id].parent_id.to_string();
-                m_core.notifier().notify(FILE_DOWNLOAD_SUCCESS, data);
-            }
-            else
-            {
-                notify_request_failure(m_core.notifier(), FILE_DOWNLOAD_FAILURE, response.status_code,
-                                       response.body);
-            }
-        });
+            nlohmann::json data;
+            data["id"] = id.to_string();
+            data["parent_id"] = m_items[id].parent_id.to_string();
+            m_core.notifier().notify(FILE_DOWNLOAD_SUCCESS, data);
+        }
+        else
+        {
+            notify_request_failure(m_core.notifier(), FILE_DOWNLOAD_FAILURE, response.status_code,
+                                   response.body);
+        }
     });
 }
 
@@ -1442,67 +1439,61 @@ void ItemManagerBase::download_item(const UUID& id, const std::string& file_path
                                     const std::function<void(const Response& response)>&
                                     on_response)
 {
-    api::request_with_auto_refresh(m_core, [this, id, &file_path, &on_response]()
-    {
-        api::files::get_download_url(
-            m_core,
-            id.to_string(),
-            [this, id, file_path, on_response](const Response& response)
+    api::files::get_download_url(
+        m_core,
+        id.to_string(),
+        [this, id, file_path, on_response](const Response& response)
+        {
+            if (response.status_code == 200)
             {
-                if (response.status_code == 200)
-                {
-                    const std::string& download_url = response.body;
-                    std::map<std::string, std::string> headers;
-                    nlohmann::json task_info;
-                    task_info["id"] = id.to_string();
-                    task_info["parent_id"] = m_items[id].parent_id.to_string();
-                    task_info["type"] = transfer_type::FILE;
-                    m_core.network_provider().download_file(
-                        download_url, headers, file_path,
-                        task_info, on_response, [this](std::int16_t error_code, const std::string& data)
-                        {
-                            handle_network_error(m_core.notifier(), error_code, data);
-                        });
-                }
-                else
-                {
-                    notify_request_failure(m_core.notifier(), FILE_DOWNLOAD_FAILURE, response.status_code,
-                                           response.body);
-                }
-            },
-            [this](std::int16_t error_code, const std::string& data)
+                const std::string& download_url = response.body;
+                std::map<std::string, std::string> headers;
+                nlohmann::json task_info;
+                task_info["id"] = id.to_string();
+                task_info["parent_id"] = m_items[id].parent_id.to_string();
+                task_info["type"] = transfer_type::FILE;
+                m_core.network_provider().download_file(
+                    download_url, headers, file_path,
+                    task_info, on_response, [this](std::int16_t error_code, const std::string& data)
+                    {
+                        handle_network_error(m_core.notifier(), error_code, data);
+                    });
+            }
+            else
             {
-                handle_network_error(m_core.notifier(), error_code, data);
-            });
-    });
+                notify_request_failure(m_core.notifier(), FILE_DOWNLOAD_FAILURE, response.status_code,
+                                       response.body);
+            }
+        },
+        [this](std::int16_t error_code, const std::string& data)
+        {
+            handle_network_error(m_core.notifier(), error_code, data);
+        });
 }
 
 void ItemManagerBase::fetch_file_download_url(const UUID& id) const
 {
-    api::request_with_auto_refresh(m_core, [this, id]()
-    {
-        api::files::get_download_url(m_core, id.to_string(), [this, id](const Response& response)
+    api::files::get_download_url(m_core, id.to_string(), [this, id](const Response& response)
+                                 {
+                                     if (response.status_code == 200)
                                      {
-                                         if (response.status_code == 200)
-                                         {
-                                             const std::string& download_url = response.body;
-                                             json data;
-                                             data["id"] = id.to_string();
-                                             data["url"] = download_url;
-                                             m_core.notifier().notify(FETCH_FILE_DOWNLOAD_URL_SUCCESS, data);
-                                         }
-                                         else
-                                         {
-                                             json data;
-                                             data["id"] = id.to_string();
-                                             m_core.notifier().notify(FETCH_FILE_DOWNLOAD_URL_FAILURE, data);
-                                         }
-                                     },
-                                     [this](std::int16_t error_code, const std::string& data)
+                                         const std::string& download_url = response.body;
+                                         json data;
+                                         data["id"] = id.to_string();
+                                         data["url"] = download_url;
+                                         m_core.notifier().notify(FETCH_FILE_DOWNLOAD_URL_SUCCESS, data);
+                                     }
+                                     else
                                      {
-                                         handle_network_error(m_core.notifier(), error_code, data);
-                                     });
-    });
+                                         json data;
+                                         data["id"] = id.to_string();
+                                         m_core.notifier().notify(FETCH_FILE_DOWNLOAD_URL_FAILURE, data);
+                                     }
+                                 },
+                                 [this](std::int16_t error_code, const std::string& data)
+                                 {
+                                     handle_network_error(m_core.notifier(), error_code, data);
+                                 });
 }
 
 void ItemManagerBase::apply_create_item(const Item& item)
