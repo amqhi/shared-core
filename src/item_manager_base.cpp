@@ -19,6 +19,7 @@
 #include "item_utils.h"
 #include "sync_event.h"
 #include "vector_utils.h"
+#include <fstream>
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -1439,6 +1440,17 @@ void ItemManagerBase::download_item(const UUID& id, const std::string& file_path
                                     const std::function<void(const Response& response)>&
                                     on_response)
 {
+    if (m_items[id].status == item_status::AVAILABLE_OFFLINE)
+    {
+        if (fs::exists(item_local_file_path(m_core, m_items[id])))
+        {
+            fs::copy_file(item_local_file_path(m_core, m_items[id]), file_path, fs::copy_options::none);
+            Response response;
+            response.status_code = 200;
+            on_response(response);
+            return;
+        }
+    }
     api::files::get_download_url(
         m_core,
         id.to_string(),
