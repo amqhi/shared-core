@@ -8,6 +8,8 @@
 
 #include "notifier_base.h"
 
+using namespace event_code;
+
 void INetworkProviderBase::get(const std::string& url, const std::map<std::string, std::string>& headers,
     std::function<void(const amqhi::HttpResponse& response)> on_response,
     std::function<void(std::int16_t error_code, const std::string& data)> on_failure)

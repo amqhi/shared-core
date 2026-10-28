@@ -13,6 +13,7 @@
 #include "secure_storage_provider_base.h"
 
 namespace fs = std::filesystem;
+using namespace event_code;
 
 CoreBase::CoreBase(std::string app_support_path, INetworkProviderBase& network_provider,
 ISecureStorageProviderBase& secure_storage_provider, INotifierBase& notifier, IPlatformUtilsBase& platform_utils) :
