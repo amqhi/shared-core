@@ -56,6 +56,8 @@ namespace event_code
     constexpr std::int16_t ITEMS_RESTORE_STARTED = 1123;
     constexpr std::int16_t ITEMS_RESTORE_SUCCESS = 1124;
     constexpr std::int16_t ITEMS_RESTORE_FAILURE = 1125;
+    constexpr std::int16_t ITEM_MAKE_ONLINE_ONLY_SUCCESS = 1126;
+    constexpr std::int16_t ITEM_MAKE_ONLINE_ONLY_FAILURE = 1127;
 
     // -----------------------------------------------------------------------------
     // File & Transfer (1200 ~ 1299)

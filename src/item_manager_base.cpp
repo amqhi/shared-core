@@ -1418,6 +1418,24 @@ void ItemManagerBase::make_item_available_offline(const UUID& id)
     });
 }
 
+void ItemManagerBase::make_item_online_only(const UUID& id)
+{
+    if (m_items[id].status != item_status::AVAILABLE_OFFLINE)
+    {
+        return;
+    }
+    if (fs::exists(item_local_file_path(m_core, m_items[id])))
+    {
+        fs::remove(item_local_file_path(m_core, m_items[id]));
+    }
+    m_items[id].status = item_status::ONLINE_ONLY;
+    m_items[id].save(m_core.database_provider().database());
+    nlohmann::json data;
+    data["id"] = id.to_string();
+    data["parent_id"] = m_items[id].parent_id.to_string();
+    m_core.notifier().notify(ITEM_MAKE_ONLINE_ONLY_SUCCESS, data);
+}
+
 void ItemManagerBase::download_item(const UUID& id, const std::string& file_path)
 {
     download_item(id, file_path, [this, id](const Response& response)
