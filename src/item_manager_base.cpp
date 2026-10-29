@@ -207,7 +207,6 @@ void ItemManagerBase::sync()
                                                            }
                                                            else
                                                            {
-                                                               m_id_lists[item.parent_id].push_back(item.id);
                                                                apply_create_item(item);
                                                            }
                                                            break;
