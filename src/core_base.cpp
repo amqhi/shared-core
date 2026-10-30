@@ -53,6 +53,11 @@ void CoreBase::on_resume() const
     m_item_manager->sync();
 }
 
+void CoreBase::on_network_reconnect() const
+{
+    m_item_manager->sync();
+}
+
 void CoreBase::add_user()
 {
     User user;

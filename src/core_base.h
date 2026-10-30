@@ -26,6 +26,7 @@ public:
 
     void on_suspend() const;
     void on_resume() const;
+    void on_network_reconnect() const;
 
     void add_user();
     void switch_user(char user_local_id);
