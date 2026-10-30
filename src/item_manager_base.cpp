@@ -40,6 +40,11 @@ const Item& ItemManagerBase::item_by_id(const UUID& id)
     return m_items[id];
 }
 
+std::string ItemManagerBase::item_offline_file_path_by_id(const UUID& id)
+{
+    return item_local_file_path(m_core, m_items[id]);
+}
+
 const FileMetadata& ItemManagerBase::file_metadata_by_id(const UUID& id)
 {
     return m_file_metadata[id];

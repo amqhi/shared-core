@@ -24,6 +24,7 @@ class ItemManagerBase
     explicit ItemManagerBase(CoreBase& core);
     const std::vector<UUID>& id_list_by_id(const UUID& parent_id);
     [[nodiscard]] const Item& item_by_id(const UUID& id);
+    [[nodiscard]] std::string item_offline_file_path_by_id(const UUID& id);
     [[nodiscard]] const FileMetadata& file_metadata_by_id(const UUID& id);
     [[nodiscard]] const FolderMetadata& folder_metadata_by_id(const UUID& id);
     virtual void clear();
