@@ -271,6 +271,7 @@ void ItemManagerBase::sync()
 /// Fetch each item type or thumbnails in order and save it locally. The next step starts after the current request finishes.
 void ItemManagerBase::refresh()
 {
+    api::sync::acknowledge_events_all(m_core, [](const Response& response) {}, [](std::int16_t error_code, const std::string& data) {});
     refresh_phase1_files();
 }
 

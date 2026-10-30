@@ -52,6 +52,14 @@ namespace api
             const std::vector<std::string>& item_ids,
             const OnResponse& on_response,
             const OnFailure& on_failure);
+        void acknowledge_events_all_raw(
+            CoreBase& core,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
+        void acknowledge_events_all(
+            CoreBase& core,
+            const OnResponse& on_response,
+            const OnFailure& on_failure);
     }
 
     namespace items

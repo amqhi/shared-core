@@ -74,9 +74,25 @@ void api::sync::acknowledge_events(
     });
 }
 
+void api::sync::acknowledge_events_all_raw(CoreBase& core, const OnResponse& on_response, const OnFailure& on_failure)
+{
+    std::string url = core.settings().instance_url() + "/sync/events/acknowledge/all";
+    std::map<std::string, std::string> headers;
+    headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
+    core.network_provider().post(url, headers,on_response, on_failure);
+}
+
+void api::sync::acknowledge_events_all(CoreBase& core, const OnResponse& on_response, const OnFailure& on_failure)
+{
+    request_with_auto_refresh(core, [&core, on_response, on_failure]()
+    {
+        acknowledge_events_all_raw(core, on_response, on_failure);
+    });
+}
+
 void api::items::get_item_raw(CoreBase& core,
-            const std::string& id, const OnResponse& on_response,
-                          const OnFailure& on_failure)
+                              const std::string& id, const OnResponse& on_response,
+                              const OnFailure& on_failure)
 {
     std::string url = core.settings().instance_url() + "/items/" + id;
     std::map<std::string, std::string> headers;
