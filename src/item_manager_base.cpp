@@ -1205,28 +1205,91 @@ void ItemManagerBase::download_thumbnails(int16_t event_code)
 
 void ItemManagerBase::refresh_phase1_files()
 {
-    api::request_with_auto_refresh(m_core, [this]()
-    {
-        api::files::get_files(m_core, [this](const Response& response)
+    api::files::get_files(m_core, [this](const Response& response)
+                          {
+                              if (response.status_code == 200)
+                              {
+                                  auto files_body = json::parse(response.body, nullptr, false);
+                                  if (files_body.is_discarded() || !files_body.is_object())
+                                  {
+                                      notify_request_failure(m_core.notifier(), REFRESH_FAILURE,
+                                                             response.status_code,
+                                                             response.body);
+                                  }
+                                  else
+                                  {
+                                      // bool has_more_files = json_utils::get_bool(files_body, "has_more", false);
+                                      // if (has_more_files)
+                                      // {
+                                      //
+                                      // }
+                                      if (auto it = files_body.find("files"); it != files_body.end() && it->
+                                          is_array())
+                                      {
+                                          for (auto& child : *it)
+                                          {
+                                              Item item = item_from_json(child);
+                                              if (item.updated_at == m_items[item.id].updated_at)
+                                              {
+                                                  continue;
+                                              }
+                                              FileMetadata file_metadata = file_metadata_from_json(child);
+                                              item.setup_icon_type(file_metadata);
+                                              const auto item_id = item.id;
+                                              const auto parent_id = item.parent_id;
+
+                                              item.save(m_core.database_provider().database());
+                                              cache_file_metadata(m_core.database_provider().database(),
+                                                                  file_metadata);
+
+                                              m_items[item_id] = std::move(item);
+                                              m_id_lists[parent_id].push_back(item_id);
+                                              m_file_metadata[item_id] = std::move(file_metadata);
+                                          }
+                                      }
+
+                                      refresh_phase2_folders();
+                                  }
+                              }
+                              else
+                              {
+                                  notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
+                                                         response.status_code,
+                                                         response.body);
+                                  refresh_phase2_folders();
+                              }
+                          }, [this](std::int16_t error_code, const std::string& data)
+                          {
+                              handle_network_error(m_core.notifier(), error_code, data);
+                              refresh_phase2_folders();
+                          });
+}
+
+void ItemManagerBase::refresh_phase2_folders()
+{
+    api::folders::get_folders(m_core, [this](const Response& response)
                               {
                                   if (response.status_code == 200)
                                   {
-                                      auto files_body = json::parse(response.body, nullptr, false);
-                                      if (files_body.is_discarded() || !files_body.is_object())
+                                      auto folders_body = json::parse(
+                                          response.body, nullptr, false);
+                                      if (folders_body.is_discarded() || !folders_body.
+                                          is_object())
                                       {
-                                          notify_request_failure(m_core.notifier(), REFRESH_FAILURE,
-                                                                 response.status_code,
-                                                                 response.body);
+                                          notify_request_failure(
+                                              m_core.notifier(),
+                                              REFRESH_FAILURE, response.status_code,
+                                              response.body);
                                       }
                                       else
                                       {
-                                          // bool has_more_files = json_utils::get_bool(files_body, "has_more", false);
-                                          // if (has_more_files)
+                                          // bool has_more_folders = json_utils::get_bool(folders_body, "has_more", false);
+                                          // if (has_more_folders)
                                           // {
                                           //
                                           // }
-                                          if (auto it = files_body.find("files"); it != files_body.end() && it->
-                                              is_array())
+                                          if (auto it = folders_body.find("folders"); it
+                                              != folders_body.end() && it->is_array())
                                           {
                                               for (auto& child : *it)
                                               {
@@ -1235,111 +1298,42 @@ void ItemManagerBase::refresh_phase1_files()
                                                   {
                                                       continue;
                                                   }
-                                                  FileMetadata file_metadata = file_metadata_from_json(child);
-                                                  item.setup_icon_type(file_metadata);
+                                                  FolderMetadata folder_metadata = folder_metadata_from_json(child);
+                                                  item.setup_icon_type(folder_metadata);
+
                                                   const auto item_id = item.id;
-                                                  const auto parent_id = item.parent_id;
+                                                  const auto parent_id = item.
+                                                      parent_id;
 
-                                                  item.save(m_core.database_provider().database());
-                                                  cache_file_metadata(m_core.database_provider().database(),
-                                                                      file_metadata);
+                                                  item.save(
+                                                      m_core.database_provider().
+                                                             database());
+                                                  cache_folder_metadata(
+                                                      m_core.database_provider().database(), item_id,
+                                                      folder_metadata);
 
+                                                  m_folder_metadata[item_id] = folder_metadata;
                                                   m_items[item_id] = std::move(item);
-                                                  m_id_lists[parent_id].push_back(item_id);
-                                                  m_file_metadata[item_id] = std::move(file_metadata);
+                                                  m_id_lists[parent_id].push_back(
+                                                      item_id);
                                               }
                                           }
 
-                                          refresh_phase2_folders();
+                                          download_thumbnails(REFRESH_SUCCESS);
                                       }
                                   }
                                   else
                                   {
-                                      notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
-                                                             response.status_code,
-                                                             response.body);
-                                      refresh_phase2_folders();
+                                      notify_request_failure(
+                                          m_core.notifier(), FETCH_FOLDERS_FAILURE,
+                                          response.status_code, response.body);
                                   }
-                              }, [this](std::int16_t error_code, const std::string& data)
+                              }, [this](std::int16_t error_code,
+                                        const std::string& data)
                               {
-                                  handle_network_error(m_core.notifier(), error_code, data);
-                                  refresh_phase2_folders();
+                                  handle_network_error(
+                                      m_core.notifier(), error_code, data);
                               });
-    });
-}
-
-void ItemManagerBase::refresh_phase2_folders()
-{
-    api::request_with_auto_refresh(m_core, [this]()
-    {
-        api::folders::get_folders(m_core, [this](const Response& response)
-                                  {
-                                      if (response.status_code == 200)
-                                      {
-                                          auto folders_body = json::parse(
-                                              response.body, nullptr, false);
-                                          if (folders_body.is_discarded() || !folders_body.
-                                              is_object())
-                                          {
-                                              notify_request_failure(
-                                                  m_core.notifier(),
-                                                  REFRESH_FAILURE, response.status_code,
-                                                  response.body);
-                                          }
-                                          else
-                                          {
-                                              // bool has_more_folders = json_utils::get_bool(folders_body, "has_more", false);
-                                              // if (has_more_folders)
-                                              // {
-                                              //
-                                              // }
-                                              if (auto it = folders_body.find("folders"); it
-                                                  != folders_body.end() && it->is_array())
-                                              {
-                                                  for (auto& child : *it)
-                                                  {
-                                                      Item item = item_from_json(child);
-                                                      if (item.updated_at == m_items[item.id].updated_at)
-                                                      {
-                                                          continue;
-                                                      }
-                                                      FolderMetadata folder_metadata = folder_metadata_from_json(child);
-                                                      item.setup_icon_type(folder_metadata);
-
-                                                      const auto item_id = item.id;
-                                                      const auto parent_id = item.
-                                                          parent_id;
-
-                                                      item.save(
-                                                          m_core.database_provider().
-                                                                 database());
-                                                      cache_folder_metadata(
-                                                          m_core.database_provider().database(), item_id,
-                                                          folder_metadata);
-
-                                                      m_folder_metadata[item_id] = folder_metadata;
-                                                      m_items[item_id] = std::move(item);
-                                                      m_id_lists[parent_id].push_back(
-                                                          item_id);
-                                                  }
-                                              }
-
-                                              download_thumbnails(REFRESH_SUCCESS);
-                                          }
-                                      }
-                                      else
-                                      {
-                                          notify_request_failure(
-                                              m_core.notifier(), FETCH_FOLDERS_FAILURE,
-                                              response.status_code, response.body);
-                                      }
-                                  }, [this](std::int16_t error_code,
-                                            const std::string& data)
-                                  {
-                                      handle_network_error(
-                                          m_core.notifier(), error_code, data);
-                                  });
-    });
 }
 
 void ItemManagerBase::download_thumbnail(const UUID& id)
