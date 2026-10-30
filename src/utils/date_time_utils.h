@@ -6,6 +6,7 @@
 #define SHARED_DATE_TIME_UTILS_H
 
 #include <chrono>
+#include <string>
 
 int64_t current_date_time_utc_int64();
 

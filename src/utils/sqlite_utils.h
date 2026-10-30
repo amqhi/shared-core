@@ -6,6 +6,7 @@
 #define SHARED_SQLITE_UTILS_H
 #include <string>
 #include "sqlite3.h"
+#include <optional>
 
 namespace sqlite_utils
 {
