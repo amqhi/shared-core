@@ -39,6 +39,7 @@ void SettingsBase::initialize()
     if (!data.is_discarded())
     {
         m_instance_url = json_utils::get_string(data, "instance_url", settings_defaults::BACKEND_URL);
+        m_android_navigation_bar_style = static_cast<char>(json_utils::get_int<std::int8_t>(data, "android_navigation_bar_style", 'n'));
         initialize(data);
     }
 }
@@ -59,6 +60,7 @@ void SettingsBase::save()
 
     json data;
     data["instance_url"] = m_instance_url;
+    data["android_navigation_bar_style"] = m_android_navigation_bar_style;
     bind_data(data);
     file << data.dump(4) << std::endl;
 }

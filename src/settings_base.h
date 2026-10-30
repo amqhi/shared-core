@@ -29,6 +29,8 @@ public:
     explicit SettingsBase(CoreBase& core);
     SETTINGS_SETTER(const std::string&, instance_url)
     SETTINGS_GETTER(const std::string&, instance_url)
+    SETTINGS_SETTER(char, android_navigation_bar_style)
+    SETTINGS_GETTER(char, android_navigation_bar_style)
     void initialize();
     virtual void initialize(const nlohmann::json& json) = 0;
     void save();
@@ -36,6 +38,7 @@ public:
 protected:
     CoreBase& m_core;
     std::string m_instance_url;
+    char m_android_navigation_bar_style;
 
 private:
     virtual void bind_data(nlohmann::json& json);
