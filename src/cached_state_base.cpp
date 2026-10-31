@@ -59,6 +59,9 @@ void CachedStateBase::save()
     {
         view_modes_json[pair.first.to_string()] = pair.second;
     }
+
+    data["last_update_check"] = m_last_update_check;
+
     bind_data(data);
 
     if (file.is_open() && file.good()) {

@@ -5,8 +5,19 @@
 #include "json.hpp"
 #include <string>
 
+#include "date_time_utils.h"
+#include "item_manager_base.h"
 #include "uuid.h"
 
+namespace cached_state_macros
+{
+#define CACHED_STATE_SETTER(type, var_name) void set_##var_name(type var_name) { \
+m_##var_name = var_name; \
+}
+#define CACHED_STATE_GETTER(type, var_name) [[nodiscard]] type var_name() const { \
+return m_##var_name; \
+}
+}
 
 namespace sort_option
 {
@@ -89,10 +100,18 @@ public:
         return m_view_modes;
     }
 
+    CACHED_STATE_SETTER(std::int64_t, last_update_check);
+    CACHED_STATE_GETTER(std::int64_t, last_update_check);
+    void update_last_update_check()
+    {
+        m_last_update_check = current_date_time_utc_int64();
+    }
+
 protected:
     std::unordered_map<UUID, char> m_sort_options;
     std::unordered_map<UUID, char> m_view_modes;
     const std::string& m_app_support_path;
+    std::int64_t m_last_update_check;
     char m_selected_user_id;
     private:
     virtual void bind_data(nlohmann::json& data) = 0;
