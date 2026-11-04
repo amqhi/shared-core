@@ -32,41 +32,41 @@ ON CONFLICT(id) DO UPDATE SET
 void sqlite_bind_folder_metadata(sqlite3_stmt* stmt, const UUID& item_id, const FolderMetadata& metadata)
 {
     auto id_bytes = item_id.to_bytes();
-    sqlite3_bind_blob(stmt, folder_metadata_column_index::ID, &id_bytes, id_bytes.size(), SQLITE_TRANSIENT);
+    sqlite3_bind_blob(stmt, folder_metadata_column_index::bind::ID, &id_bytes, id_bytes.size(), SQLITE_TRANSIENT);
     if (metadata.background_id == special_folder::UNKNOWN)
     {
-        sqlite3_bind_null(stmt, folder_metadata_column_index::BACKGROUND_ID);
+        sqlite3_bind_null(stmt, folder_metadata_column_index::bind::BACKGROUND_ID);
     }
     else
     {
         auto background_id_bytes = metadata.background_id.to_bytes();
-        sqlite3_bind_blob(stmt, folder_metadata_column_index::BACKGROUND_ID, &background_id_bytes, background_id_bytes.size(), SQLITE_TRANSIENT);
+        sqlite3_bind_blob(stmt, folder_metadata_column_index::bind::BACKGROUND_ID, &background_id_bytes, background_id_bytes.size(), SQLITE_TRANSIENT);
     }
     if (metadata.background_color.has_value())
     {
-        sqlite3_bind_int(stmt, folder_metadata_column_index::BACKGROUND_COLOR, static_cast<int>(metadata.background_color.value()));
+        sqlite3_bind_int(stmt, folder_metadata_column_index::bind::BACKGROUND_COLOR, static_cast<int>(metadata.background_color.value()));
     }
     else
     {
-        sqlite3_bind_null(stmt, folder_metadata_column_index::BACKGROUND_COLOR);
+        sqlite3_bind_null(stmt, folder_metadata_column_index::bind::BACKGROUND_COLOR);
     }
 
     if (metadata.icon_id == special_folder::UNKNOWN)
     {
-        sqlite3_bind_null(stmt, folder_metadata_column_index::ICON_ID);
+        sqlite3_bind_null(stmt, folder_metadata_column_index::bind::ICON_ID);
     }
     else
     {
         auto icon_id_bytes = metadata.icon_id.to_bytes();
-        sqlite3_bind_blob(stmt, folder_metadata_column_index::ICON_ID, &icon_id_bytes, icon_id_bytes.size(), SQLITE_TRANSIENT);
+        sqlite3_bind_blob(stmt, folder_metadata_column_index::bind::ICON_ID, &icon_id_bytes, icon_id_bytes.size(), SQLITE_TRANSIENT);
     }
     if (metadata.icon_color.has_value())
     {
-        sqlite3_bind_int(stmt, folder_metadata_column_index::ICON_COLOR, static_cast<int>(metadata.icon_color.value()));
+        sqlite3_bind_int(stmt, folder_metadata_column_index::bind::ICON_COLOR, static_cast<int>(metadata.icon_color.value()));
     }
     else
     {
-        sqlite3_bind_null(stmt, folder_metadata_column_index::ICON_COLOR);
+        sqlite3_bind_null(stmt, folder_metadata_column_index::bind::ICON_COLOR);
     }
 
 }
