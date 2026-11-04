@@ -55,6 +55,60 @@ const FolderMetadata& ItemManagerBase::folder_metadata_by_id(const UUID& id)
     return m_folder_metadata[id];
 }
 
+char ItemManagerBase::folder_view_mode_by_id(const UUID& id)
+{
+    if (id == special_folder::HOME)
+    {
+        return m_core.cached_state().home_folder_view_mode();
+    }
+    if (id == special_folder::TRASH)
+    {
+        return m_core.cached_state().trash_folder_view_mode();
+    }
+    return m_folder_metadata[id].view_mode;
+}
+
+char ItemManagerBase::folder_sort_option_by_id(const UUID& id)
+{
+    if (id == special_folder::HOME)
+    {
+        return m_core.cached_state().home_folder_sort_option();
+    }
+    if (id == special_folder::TRASH)
+    {
+        return m_core.cached_state().trash_folder_sort_option();
+    }
+    return m_folder_metadata[id].sort_option;
+}
+
+void ItemManagerBase::save_folders_view_state() const
+{
+    if (sqlite3_exec(m_core.database_provider().database(), "BEGIN TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
+        return;
+    }
+    const char* sql = "UPDATE folders SET view_mode = ?, sort_option = ? WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+
+    if (sqlite3_prepare_v2(m_core.database_provider().database(), sql, -1, &stmt, nullptr) == SQLITE_OK)
+    {
+        for (const auto& it : m_folder_metadata) {
+            sqlite3_bind_int(stmt, 1, it.second.view_mode);
+            sqlite3_bind_int(stmt, 2, it.second.sort_option);
+            auto id_bytes = it.first.to_bytes();
+            sqlite3_bind_blob(stmt, 3, &id_bytes, id_bytes.size(), SQLITE_STATIC);
+
+            sqlite3_step(stmt);
+            sqlite3_reset(stmt);
+        }
+
+        sqlite3_finalize(stmt);
+    }
+
+    if (sqlite3_exec(m_core.database_provider().database(), "COMMIT;", nullptr, nullptr, nullptr) != SQLITE_OK) {
+        sqlite3_exec(m_core.database_provider().database(), "ROLLBACK;", nullptr, nullptr, nullptr);
+    }
+}
+
 void ItemManagerBase::clear()
 {
     m_items.clear();
@@ -277,7 +331,18 @@ void ItemManagerBase::refresh()
 
 void ItemManagerBase::sort_items(char option, const UUID& parent_id)
 {
-    m_core.cached_state().set_sort_option(parent_id, option);
+    if (parent_id == special_folder::HOME)
+    {
+        m_core.cached_state().set_home_folder_sort_option(option);
+    }
+    else if (parent_id == special_folder::TRASH)
+    {
+        m_core.cached_state().set_trash_folder_sort_option(option);
+    }
+    else
+    {
+        m_folder_metadata[parent_id].sort_option = option;
+    }
     sort_items(parent_id);
 }
 
@@ -285,16 +350,22 @@ void ItemManagerBase::sort_items(const UUID& parent_id)
 {
     if (m_id_lists.find(parent_id) != m_id_lists.end())
     {
-        const auto& sort_options = m_core.cached_state().sort_options();
-
-        if (!map_utils::contains_key(sort_options, parent_id))
+        auto& id_list = m_id_lists[parent_id];
+        char sort_option;
+        if (parent_id == special_folder::HOME)
         {
-            m_core.cached_state().set_sort_option(parent_id, sort_option::DEFAULT_OPTION);
+            sort_option = m_core.cached_state().home_folder_sort_option();
+        }
+        else if (parent_id == special_folder::TRASH)
+        {
+            sort_option = m_core.cached_state().trash_folder_sort_option();
+        }
+        else
+        {
+            sort_option = m_folder_metadata[parent_id].sort_option;
         }
 
-        auto& id_list = m_id_lists[parent_id];
-
-        switch (sort_options.at(parent_id))
+        switch (sort_option)
         {
         case sort_option::NAME_ASC:
             std::sort(id_list.begin(), id_list.end(),

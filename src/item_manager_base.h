@@ -27,6 +27,9 @@ class ItemManagerBase
     [[nodiscard]] std::string item_offline_file_path_by_id(const UUID& id);
     [[nodiscard]] const FileMetadata& file_metadata_by_id(const UUID& id);
     [[nodiscard]] const FolderMetadata& folder_metadata_by_id(const UUID& id);
+    [[nodiscard]] char folder_view_mode_by_id(const UUID& id);
+    [[nodiscard]] char folder_sort_option_by_id(const UUID& id);
+    void save_folders_view_state() const;
     virtual void clear();
     virtual void initialize();
     virtual void sync();

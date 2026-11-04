@@ -69,6 +69,8 @@ void sqlite_bind_folder_metadata(sqlite3_stmt* stmt, const UUID& item_id, const 
         sqlite3_bind_null(stmt, folder_metadata_column_index::bind::ICON_COLOR);
     }
 
+    sqlite3_bind_int(stmt, folder_metadata_column_index::bind::VIEW_MODE, metadata.view_mode);
+    sqlite3_bind_int(stmt, folder_metadata_column_index::bind::SORT_OPTION, metadata.sort_option);
 }
 
 void delete_folder_metadata(sqlite3* db, const UUID& item_id)
@@ -129,12 +131,15 @@ FolderMetadata folder_metadata_from_stmt(sqlite3_stmt* stmt)
     {
         folder_metadata.icon_color = sqlite3_column_int(stmt, folder_metadata_column_index::ICON_COLOR);
     }
+
+    folder_metadata.view_mode = static_cast<char>(sqlite3_column_int(stmt, folder_metadata_column_index::VIEW_MODE));
+    folder_metadata.sort_option = static_cast<char>(sqlite3_column_int(stmt, folder_metadata_column_index::SORT_OPTION));
     return folder_metadata;
 }
 
 FolderMetadata folder_metadata_from_json(const nlohmann::json& json)
 {
-    FolderMetadata folder_metadata;
+    FolderMetadata folder_metadata{};
     if (auto it = json.find("background_id"); it != json.end() && it->is_string())
     {
         folder_metadata.background_id = UUID::from_string(it->get<std::string>());
@@ -170,5 +175,8 @@ FolderMetadata folder_metadata_from_json(const nlohmann::json& json)
     {
         folder_metadata.icon_color = std::nullopt;
     }
+    folder_metadata.view_mode = view_mode::DEFAULT_MODE;
+    folder_metadata.sort_option = sort_option::DEFAULT_OPTION;
+
     return folder_metadata;
 }

@@ -40,6 +40,7 @@ User* CoreBase::selected_user()
 void CoreBase::destroy() const
 {
     m_cached_state->save();
+    m_item_manager->save_folders_view_state();
     m_database_provider->close();
 }
 

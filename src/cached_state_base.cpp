@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <sstream>
 
+#include "json_utils.h"
+
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
@@ -33,6 +35,25 @@ CachedStateBase::CachedStateBase(const std::string& app_support_path) : m_app_su
     {
         m_selected_user_id = it->get<char>();
     }
+
+    m_last_update_check = json_utils::get_int<std::int64_t>(data, "last_update_check");
+
+    if (auto it = data.find("home_folder_view_mode"); it != data.end() && it->is_number_integer())
+    {
+        m_home_folder_view_mode = it->get<char>();
+    }
+    if (auto it = data.find("home_folder_sort_option"); it != data.end() && it->is_number_integer())
+    {
+        m_home_folder_sort_option = it->get<char>();
+    }
+    if (auto it = data.find("trash_folder_view_mode"); it != data.end() && it->is_number_integer())
+    {
+        m_trash_folder_view_mode = it->get<char>();
+    }
+    if (auto it = data.find("trash_folder_sort_option"); it != data.end() && it->is_number_integer())
+    {
+        m_trash_folder_sort_option = it->get<char>();
+    }
 }
 
 void CachedStateBase::save()
@@ -48,19 +69,13 @@ void CachedStateBase::save()
     json data;
 
     data["selected_user_id"] = m_selected_user_id;
-    auto& sort_options_json = data["sort_options"] = nlohmann::json::object();
-    for (const auto& pair : m_sort_options)
-    {
-        sort_options_json[pair.first.to_string()] = pair.second;
-    }
-
-    auto& view_modes_json = data["view_modes"] = nlohmann::json::object();
-    for (const auto& pair : m_view_modes)
-    {
-        view_modes_json[pair.first.to_string()] = pair.second;
-    }
 
     data["last_update_check"] = m_last_update_check;
+
+    data["home_folder_view_mode"] = m_home_folder_view_mode;
+    data["home_folder_sort_option"] = m_home_folder_sort_option;
+    data["trash_folder_view_mode"] = m_trash_folder_view_mode;
+    data["trash_folder_sort_option"] = m_trash_folder_sort_option;
 
     bind_data(data);
 

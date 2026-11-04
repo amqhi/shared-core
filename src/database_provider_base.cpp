@@ -11,10 +11,29 @@ void DatabaseProviderBase::initialize_database()
     fs::create_directories(user_dir);
 
     const fs::path db_path = user_dir / database_name();
-    int exit = sqlite3_open(db_path.string().c_str(), &m_database);
+    sqlite3_open(db_path.string().c_str(), &m_database);
 
-    if (exit == SQLITE_OK) {
-        sqlite3_exec(m_database, schema_sql(), nullptr, nullptr, nullptr);
+    sqlite3_exec(m_database, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
+
+    sqlite3_stmt* stmt = nullptr;
+    int current_version = 0;
+    if (sqlite3_prepare_v2(m_database, "PRAGMA user_version;", -1, &stmt, nullptr) == SQLITE_OK) {
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            current_version = sqlite3_column_int(stmt, 0);
+        }
+    }
+    sqlite3_finalize(stmt);
+    if (current_version == 0)
+    {
+        int rc = sqlite3_exec(m_database, schema_sql(), nullptr, nullptr, nullptr);
+        if (rc == SQLITE_OK)
+        {
+            sqlite3_exec(m_database, "PRAGMA user_version = 1;", nullptr, nullptr, nullptr);
+        }
+    }
+    else if (current_version != version())
+    {
+        migrate(current_version);
     }
 }
 
@@ -26,7 +45,6 @@ void DatabaseProviderBase::close() const
 const char* DatabaseProviderBase::schema_sql()
 {
     return R"(
-            PRAGMA foreign_keys = ON;
             CREATE TABLE IF NOT EXISTS items (
              id BLOB PRIMARY KEY NOT NULL,
              type INTEGER NOT NULL,
@@ -69,6 +87,8 @@ const char* DatabaseProviderBase::schema_sql()
              background_color INTEGER,
              icon_id BLOB,
              icon_color INTEGER,
+             view_mode INTEGER NOT NULL DEFAULT 0,
+             sort_option INTEGER NOT NULL DEFAULT 0,
              FOREIGN KEY(background_id) REFERENCES items(id) ON DELETE SET NULL,
              FOREIGN KEY(icon_id) REFERENCES items(id) ON DELETE SET NULL,
              FOREIGN KEY(id) REFERENCES items(id) ON DELETE CASCADE
