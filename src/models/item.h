@@ -76,8 +76,8 @@ namespace icon_type
 }
 
 struct Item {
-    std::string name;
     std::optional<std::string> comment = std::nullopt;
+    std::string name;
     UUID id;
     UUID parent_id;
     std::int64_t created_at = 0;
