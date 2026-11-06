@@ -15,10 +15,12 @@
 namespace fs = std::filesystem;
 using namespace event_code;
 
-CoreBase::CoreBase(std::string app_support_path, INetworkProviderBase& network_provider,
-ISecureStorageProviderBase& secure_storage_provider, INotifierBase& notifier, IPlatformUtilsBase& platform_utils) :
-    m_app_support_path(std::move(app_support_path)), m_network_provider(network_provider),
-m_secure_storage_provider(secure_storage_provider), m_notifier(notifier), m_platform_utils(platform_utils)
+CoreBase::CoreBase(std::string app_support_path, std::unique_ptr<INetworkProviderBase> network_provider,
+                   std::unique_ptr<ISecureStorageProviderBase> secure_storage_provider,
+                   std::unique_ptr<INotifierBase> notifier, std::unique_ptr<IPlatformUtilsBase> platform_utils) :
+    m_app_support_path(std::move(app_support_path)), m_network_provider(std::move(network_provider)),
+    m_secure_storage_provider(std::move(secure_storage_provider)), m_notifier(std::move(notifier)),
+    m_platform_utils(std::move(platform_utils))
 {
 
 }
@@ -78,7 +80,7 @@ void CoreBase::switch_user(char user_local_id)
     m_item_manager->clear();
     m_database_provider->close();
     initialize();
-    m_notifier.notify(USER_SWITCHED);
+    m_notifier->notify(USER_SWITCHED);
 }
 
 void CoreBase::exchange_google_token(const std::string& id_token)
@@ -87,7 +89,7 @@ void CoreBase::exchange_google_token(const std::string& id_token)
     std::map<std::string, std::string> headers;
     nlohmann::json body;
     body["id_token"] = id_token;
-    m_network_provider.post(
+    m_network_provider->post(
         url,
         headers,
         body,
@@ -100,7 +102,7 @@ void CoreBase::exchange_google_token(const std::string& id_token)
                 {
                     selected_user()->access_token = "";
                     selected_user()->refresh_token = "";
-                    m_notifier.notify(RE_LOGIN_REQUIRED);
+                    m_notifier->notify(RE_LOGIN_REQUIRED);
                 }
                 else
                 {
@@ -112,7 +114,7 @@ void CoreBase::exchange_google_token(const std::string& id_token)
                     data["access_token"] = selected_user()->access_token;
                     data["refresh_token"] = selected_user()->refresh_token;
                     data["expires_at"] = selected_user()->access_token_expires_at;
-                    m_secure_storage_provider.set_secure_string(m_selected_user_id, data.dump());
+                    m_secure_storage_provider->set_secure_string(m_selected_user_id, data.dump());
                 }
             }
             else
@@ -121,7 +123,7 @@ void CoreBase::exchange_google_token(const std::string& id_token)
         }
         , [this](std::int16_t error_code, const std::string& data)
         {
-            handle_network_error(m_notifier, error_code, data);
+            handle_network_error(*m_notifier, error_code, data);
         });
 }
 
@@ -140,10 +142,10 @@ void CoreBase::handle_login(const std::string& email, const std::string& passwor
     nlohmann::json body;
     body["email"] = email;
     body["password"] = password;
-    body["device_name"] = m_platform_utils.get_device_name();
+    body["device_name"] = m_platform_utils->get_device_name();
     body["device_os"] = platform::name();
     body["app_type"] = "cloud";
-    m_network_provider.post(
+    m_network_provider->post(
         url,
         headers,
         body,
@@ -156,7 +158,7 @@ void CoreBase::handle_login(const std::string& email, const std::string& passwor
                 {
                     selected_user()->access_token = "";
                     selected_user()->refresh_token = "";
-                    notify_request_failure(m_notifier, LOGIN_FAILURE, response.status_code, response.body);
+                    notify_request_failure(*m_notifier, LOGIN_FAILURE, response.status_code, response.body);
                 }
                 else
                 {
@@ -168,9 +170,9 @@ void CoreBase::handle_login(const std::string& email, const std::string& passwor
                     data["access_token"] = selected_user()->access_token;
                     data["refresh_token"] = selected_user()->refresh_token;
                     data["expires_at"] = selected_user()->access_token_expires_at;
-                    m_secure_storage_provider.set_secure_string(m_selected_user_id, data.dump());
+                    m_secure_storage_provider->set_secure_string(m_selected_user_id, data.dump());
                     m_item_manager->refresh();
-                    m_notifier.notify(LOGIN_SUCCESS);
+                    m_notifier->notify(LOGIN_SUCCESS);
                     fetch_user_info();
                 }
             }
@@ -178,7 +180,7 @@ void CoreBase::handle_login(const std::string& email, const std::string& passwor
             {
                 selected_user()->access_token = "";
                 selected_user()->refresh_token = "";
-                notify_request_failure(m_notifier, LOGIN_FAILURE, response.status_code, response.body);
+                notify_request_failure(*m_notifier, LOGIN_FAILURE, response.status_code, response.body);
             }
         }
         , [](std::int16_t error_code, const std::string& data)
@@ -191,14 +193,14 @@ void CoreBase::fetch_user_info()
     std::string url = m_settings->instance_url() + "/users/me";
     std::map<std::string, std::string> headers;
     headers["Authorization"] = "Bearer " + selected_user()->access_token;
-    m_network_provider.get(url, headers, [this](const amqhi::HttpResponse& response)
+    m_network_provider->get(url, headers, [this](const amqhi::HttpResponse& response)
                            {
                                if (response.status_code == 200)
                                {
                                    const nlohmann::json body = nlohmann::json::parse(response.body, nullptr, false);
                                    if (body.is_discarded())
                                    {
-                                       notify_request_failure(m_notifier, FETCH_USER_INFO_FAILURE, response.status_code,
+                                       notify_request_failure(*m_notifier, FETCH_USER_INFO_FAILURE, response.status_code,
                                                               response.body);
                                    }
                                    else
@@ -230,7 +232,7 @@ void CoreBase::fetch_user_info()
                                        //                                      {
                                        //                                          auto& url = response.body;
                                        //                                          std::map<std::string, std::string> headers;
-                                       //                                          m_network_provider.download_file(url, headers, );
+                                       //                                          m_network_provider->download_file(url, headers, );
                                        //                                      }
                                        //                                      else
                                        //                                      {
@@ -245,11 +247,11 @@ void CoreBase::fetch_user_info()
                                }
                                else
                                {
-                                   notify_request_failure(m_notifier, FETCH_USER_INFO_FAILURE, response.status_code, response.body);
+                                   notify_request_failure(*m_notifier, FETCH_USER_INFO_FAILURE, response.status_code, response.body);
                                }
                            }, [this](std::int16_t error_code, const std::string& data)
                            {
-                               handle_network_error(m_notifier, error_code, data);
+                               handle_network_error(*m_notifier, error_code, data);
                            });
 }
 
@@ -269,7 +271,7 @@ void CoreBase::handle_register(const std::string& email, const std::string& pass
     body["email"] = email;
     body["password"] = password;
     body["name"] = name;
-    m_network_provider.post(
+    m_network_provider->post(
         url,
         headers,
         body,
@@ -277,11 +279,11 @@ void CoreBase::handle_register(const std::string& email, const std::string& pass
         {
             if (response.status_code == 200)
             {
-                m_notifier.notify(REGISTER_SUCCESS);
+                m_notifier->notify(REGISTER_SUCCESS);
             }
             else
             {
-                notify_request_failure(m_notifier, REGISTER_FAILURE, response.status_code, response.body);
+                notify_request_failure(*m_notifier, REGISTER_FAILURE, response.status_code, response.body);
             }
         }
         , [](std::int16_t error_code, const std::string& data)
@@ -295,7 +297,7 @@ void CoreBase::handle_logout()
     std::map<std::string, std::string> headers;
     headers["Authorization"] = "Bearer " + selected_user()->access_token;
     nlohmann::json body;
-    m_network_provider.post(
+    m_network_provider->post(
         url,
         headers,
         body,
@@ -303,7 +305,7 @@ void CoreBase::handle_logout()
         {
             if (response.status_code == 200)
             {
-                m_secure_storage_provider.remove_secure_string(m_selected_user_id);
+                m_secure_storage_provider->remove_secure_string(m_selected_user_id);
                 fs::path user_dir_path = fs::path(m_app_support_path) / std::string_view(&m_selected_user_id, 1);
                 fs::remove_all(user_dir_path);
                 for (auto it = m_users.begin(); it != m_users.end(); ++it)
@@ -329,15 +331,15 @@ void CoreBase::handle_logout()
                 m_item_manager->clear();
                 m_cached_state->set_selected_user_id(m_selected_user_id);
                 initialize();
-                m_notifier.notify(LOGOUT_SUCCESS);
+                m_notifier->notify(LOGOUT_SUCCESS);
             }
             else
             {
-                notify_request_failure(m_notifier, LOGOUT_FAILURE, response.status_code, response.body);
+                notify_request_failure(*m_notifier, LOGOUT_FAILURE, response.status_code, response.body);
             }
         }
         , [this](std::int16_t error_code, const std::string& data)
         {
-            handle_network_error(m_notifier, error_code, data);
+            handle_network_error(*m_notifier, error_code, data);
         });
 }

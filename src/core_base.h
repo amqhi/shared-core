@@ -1,6 +1,8 @@
 #ifndef SHARED_CORE_CORE_BASE_H
 #define SHARED_CORE_CORE_BASE_H
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "cached_state_base.h"
 #include "database_provider_base.h"
@@ -17,9 +19,9 @@ class CoreBase
 {
 public:
     virtual ~CoreBase() = default;
-    explicit CoreBase(std::string app_support_path, INetworkProviderBase& network_provider,
-                      ISecureStorageProviderBase& secure_storage_provider, INotifierBase& notifier,
-                      IPlatformUtilsBase& platform_utils);
+    explicit CoreBase(std::string app_support_path, std::unique_ptr<INetworkProviderBase> network_provider,
+                      std::unique_ptr<ISecureStorageProviderBase> secure_storage_provider,
+                      std::unique_ptr<INotifierBase> notifier, std::unique_ptr<IPlatformUtilsBase> platform_utils);
     virtual void initialize() = 0;
     [[nodiscard]] bool token_refresh_required();
     void destroy() const;
@@ -43,10 +45,10 @@ public:
     void handle_register(const std::string& email, const std::string& password, const std::string& name) const;
     void handle_logout();
 
-    [[nodiscard]] INetworkProviderBase& network_provider() const { return m_network_provider; }
-    [[nodiscard]] ISecureStorageProviderBase& secure_storage_provider() const { return m_secure_storage_provider; }
-    [[nodiscard]] INotifierBase& notifier() const { return m_notifier; }
-    [[nodiscard]] IPlatformUtilsBase& platform_utils() const { return m_platform_utils; }
+    [[nodiscard]] INetworkProviderBase& network_provider() const { return *m_network_provider; }
+    [[nodiscard]] ISecureStorageProviderBase& secure_storage_provider() const { return *m_secure_storage_provider; }
+    [[nodiscard]] INotifierBase& notifier() const { return *m_notifier; }
+    [[nodiscard]] IPlatformUtilsBase& platform_utils() const { return *m_platform_utils; }
     [[nodiscard]] ItemManagerBase& item_manager() const { return *m_item_manager; }
     [[nodiscard]] SettingsBase& settings() const { return *m_settings; }
     [[nodiscard]] DatabaseProviderBase& database_provider() const { return *m_database_provider; }
@@ -58,10 +60,10 @@ public:
 
 protected:
     std::string m_app_support_path;
-    INetworkProviderBase& m_network_provider;
-    ISecureStorageProviderBase& m_secure_storage_provider;
-    INotifierBase& m_notifier;
-    IPlatformUtilsBase& m_platform_utils;
+    std::unique_ptr<INetworkProviderBase> m_network_provider;
+    std::unique_ptr<ISecureStorageProviderBase> m_secure_storage_provider;
+    std::unique_ptr<INotifierBase> m_notifier;
+    std::unique_ptr<IPlatformUtilsBase> m_platform_utils;
     std::unique_ptr<ItemManagerBase> m_item_manager;
     std::unique_ptr<SettingsBase> m_settings;
     std::unique_ptr<CachedStateBase> m_cached_state;
