@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <CloudIncludeDirs>$(MSBuildThisFileDirectory)src;$(MSBuildThisFileDirectory)src\utils;$(MSBuildThisFileDirectory)src\models;$(MSBuildThisFileDirectory)deps;$(MSBuildThisFileDirectory)deps\sqlite;$(MSBuildThisFileDirectory)deps\json;</CloudIncludeDirs>
+    <CloudJavaBindingIncludeDirs>$(MSBuildThisFileDirectory)bindings\java;</CloudJavaBindingIncludeDirs>
+  </PropertyGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)deps\sqlite\sqlite3.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\core_base.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\item_manager_base.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\cached_state_base.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\settings_base.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\map_utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\vector_utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\sqlite_utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\json_utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\network_provider_base.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\database_provider_base.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\date_time_utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\name_generator.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\network_error.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\request_failure.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\user.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\item.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\auth_tokens.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\item_attributes.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\common_api.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\sync_event.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\file_metadata.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\folder_metadata.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\uuid.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)bindings\java\java_list.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)deps\sqlite\sqlite3.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)deps\json\json.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\core_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\item_manager_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\cached_state_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\settings_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\map_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\vector_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\sqlite_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\json_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\notifier_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\network_provider_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\database_provider_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\secure_storage_provider_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\platform_utils_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\date_time_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\mime_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\name_generator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\network_error.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\request_failure.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\models\user.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\models\item.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\models\auth_tokens.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\models\item_attributes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\common_api.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\models\sync_event.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\models\file_metadata.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\models\folder_metadata.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\models\uuid.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_string.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_map.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_list.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_item.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_uuid.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_user.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_integer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_long.h" />
+  </ItemGroup>
+</Project>
