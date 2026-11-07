@@ -46,6 +46,7 @@ set(SHARED_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/utils/network_error.h
     ${CMAKE_CURRENT_LIST_DIR}/src/utils/request_failure.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/utils/request_failure.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/utils/platform.h
     ${CMAKE_CURRENT_LIST_DIR}/src/models/user.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/models/user.h
     ${CMAKE_CURRENT_LIST_DIR}/src/models/item.cpp

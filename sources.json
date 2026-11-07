@@ -43,6 +43,7 @@
         "src/utils/network_error.h",
         "src/utils/request_failure.cpp",
         "src/utils/request_failure.h",
+        "src/utils/platform.h",
         "src/models/user.cpp",
         "src/models/user.h",
         "src/models/item.cpp",

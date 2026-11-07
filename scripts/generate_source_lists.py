@@ -55,6 +55,7 @@ def get_shared_definitions():
             ROOT_DIR / "src" / "utils" / "network_error.h",
             ROOT_DIR / "src" / "utils" / "request_failure.cpp",
             ROOT_DIR / "src" / "utils" / "request_failure.h",
+            ROOT_DIR / "src" / "utils" / "platform.h",
             ROOT_DIR / "src" / "models" / "user.cpp",
             ROOT_DIR / "src" / "models" / "user.h",
             ROOT_DIR / "src" / "models" / "item.cpp",
