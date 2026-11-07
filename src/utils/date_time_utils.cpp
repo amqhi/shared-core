@@ -3,11 +3,15 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "date_time_utils.h"
+#include "platform.h"
 
 #include <string>
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+#if PLATFORM_WINDOWS
+#include <ctime>
+#endif
 
 int64_t current_date_time_utc_int64()
 {
@@ -29,7 +33,13 @@ int64_t parse_iso8601_to_ms(const std::string& time_str)
         return current_date_time_utc_int64();
     }
 
+#if PLATFORM_WINDOWS
+    std::time_t secondsSinceEpoch = _mkgmtime(&tm);
+#else
     std::time_t secondsSinceEpoch = timegm(&tm);
+#endif
+
+
     int64_t total_milliseconds = static_cast<int64_t>(secondsSinceEpoch) * 1000;
 
     char dot;
