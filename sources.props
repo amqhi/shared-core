@@ -1,35 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY. -->
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <CloudIncludeDirs>$(MSBuildThisFileDirectory)src;$(MSBuildThisFileDirectory)src\utils;$(MSBuildThisFileDirectory)src\models;$(MSBuildThisFileDirectory)deps;$(MSBuildThisFileDirectory)deps\sqlite;$(MSBuildThisFileDirectory)deps\json;</CloudIncludeDirs>
-    <CloudJavaBindingIncludeDirs>$(MSBuildThisFileDirectory)bindings\java;</CloudJavaBindingIncludeDirs>
+    <SharedIncludeDirs>$(SharedIncludeDirs)$(MSBuildThisFileDirectory)src;$(MSBuildThisFileDirectory)src\utils;$(MSBuildThisFileDirectory)src\models;$(MSBuildThisFileDirectory)deps;$(MSBuildThisFileDirectory)deps\sqlite;$(MSBuildThisFileDirectory)deps\json;</SharedIncludeDirs>
+    <SharedJavaBindingIncludeDirs>$(SharedJavaBindingIncludeDirs)$(MSBuildThisFileDirectory)bindings\java;</SharedJavaBindingIncludeDirs>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)deps\sqlite\sqlite3.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\core_base.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\item_manager_base.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\cached_state_base.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\settings_base.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\map_utils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\vector_utils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\sqlite_utils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\json_utils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\network_provider_base.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\database_provider_base.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\date_time_utils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\name_generator.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\network_error.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\request_failure.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\user.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\item.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\auth_tokens.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\item_attributes.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\common_api.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\sync_event.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\file_metadata.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\folder_metadata.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\uuid.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)bindings\java\java_list.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)deps\sqlite\sqlite3.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\core_base.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\item_manager_base.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\cached_state_base.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\settings_base.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\map_utils.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\vector_utils.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\sqlite_utils.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\json_utils.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\network_provider_base.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\database_provider_base.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\date_time_utils.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\name_generator.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\network_error.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\utils\request_failure.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\user.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\item.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\auth_tokens.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\item_attributes.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\common_api.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\sync_event.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\file_metadata.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\folder_metadata.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\models\uuid.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)bindings\java\java_list.cpp" Condition="'$(IncludeJavaBindings)' == 'true'">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)deps\sqlite\sqlite3.h" />
@@ -52,6 +104,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\name_generator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\network_error.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\request_failure.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\utils\platform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\models\user.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\models\item.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\models\auth_tokens.h" />
@@ -61,13 +114,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\models\file_metadata.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\models\folder_metadata.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\models\uuid.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_string.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_map.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_list.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_item.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_uuid.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_user.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_integer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_long.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_string.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_map.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_list.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_item.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_uuid.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_user.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_integer.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_long.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
   </ItemGroup>
 </Project>
