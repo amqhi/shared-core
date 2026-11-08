@@ -14,6 +14,8 @@
 #include "json_utils.h"
 #include "sqlite_utils.h"
 
+using namespace amqhi;
+
 struct User;
 
 std::string item_type::to_string(char type)

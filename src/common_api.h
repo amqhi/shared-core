@@ -13,7 +13,7 @@
 struct ItemAttributes;
 struct FileMetadata;
 class CoreBase;
-struct UUID;
+namespace amqhi { struct UUID; }
 struct SyncEvent;
 using OnResponse = std::function<void(const amqhi::HttpResponse& response)>;
 using OnFailure = std::function<void(std::int16_t error_code, const std::string& data)>;
@@ -104,8 +104,8 @@ namespace api
             const OnFailure& on_failure);
         void move_items(
               CoreBase& core,
-              const std::vector<UUID>& ids,
-              const UUID& parent_id,
+              const std::vector<amqhi::UUID>& ids,
+              const amqhi::UUID& parent_id,
               const OnResponse& on_response,
               const OnFailure& on_failure);
 
@@ -121,7 +121,7 @@ namespace api
             const OnFailure& on_failure);
         void soft_delete_items(
             CoreBase& core,
-            const std::vector<UUID>& ids,
+            const std::vector<amqhi::UUID>& ids,
             const OnResponse& on_response,
             const OnFailure& on_failure);
 
@@ -137,7 +137,7 @@ namespace api
             const OnFailure& on_failure);
         void restore_items(
             CoreBase& core,
-            const std::vector<UUID>& ids,
+            const std::vector<amqhi::UUID>& ids,
             const OnResponse& on_response,
             const OnFailure& on_failure);
 
@@ -153,7 +153,7 @@ namespace api
             const OnFailure& on_failure);
         void delete_items(
             CoreBase& core,
-            const std::vector<UUID>& ids,
+            const std::vector<amqhi::UUID>& ids,
             const OnResponse& on_response,
             const OnFailure& on_failure);
     }

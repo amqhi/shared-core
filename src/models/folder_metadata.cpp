@@ -4,6 +4,7 @@
 
 #include "folder_metadata.h"
 
+using namespace amqhi;
 
 void cache_folder_metadata(sqlite3* db, const UUID& item_id, const FolderMetadata& metadata)
 {

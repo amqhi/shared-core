@@ -6,6 +6,8 @@
 
 #include "json_utils.h"
 
+using namespace amqhi;
+
 void cache_file_metadata(sqlite3* db, const FileMetadata& metadata)
 {
     if (db == nullptr) {

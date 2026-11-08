@@ -24,6 +24,7 @@
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 using Response = amqhi::HttpResponse;
+using namespace amqhi;
 using namespace event_code;
 
 ItemManagerBase::ItemManagerBase(CoreBase& core) : m_core(core)

@@ -4,6 +4,8 @@
 
 #include "uuid.h"
 
+namespace amqhi {
+
 std::array<std::uint8_t, 16> UUID::to_bytes() const noexcept
 {
     std::array<std::uint8_t, 16> bytes{};
@@ -146,3 +148,5 @@ bool UUID::operator==(const UUID& other) const
 
     return result;
 }
+
+} // namespace amqhi

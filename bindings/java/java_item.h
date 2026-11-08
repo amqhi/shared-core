@@ -63,7 +63,7 @@ inline ItemAttributes item_attributes_from_jobject(JNIEnv* env, jobject jItemAtt
         }
         JNI_GET_LONG_FROM_CLASS(jItemAttributes, parentIdLow, "parentIdLow")
                JNI_GET_LONG_FROM_CLASS(jItemAttributes, parentIdHigh, "parentIdHigh")
-               UUID parentId{};
+               amqhi::UUID parentId{};
         parentId.high = parentIdHigh;
         parentId.low = parentIdLow;
         attributes.parent_id = parentId;

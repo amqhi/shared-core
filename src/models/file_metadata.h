@@ -13,7 +13,7 @@ struct FileMetadata
 {
     std::string checksum;
     std::string mime_type;
-    UUID id;
+    amqhi::UUID id;
     std::uint64_t size;
 };
 

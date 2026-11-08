@@ -14,7 +14,7 @@
 
 struct ItemAttributes {
     std::string name;
-    UUID parent_id = special_folder::HOME;
+    amqhi::UUID parent_id = special_folder::HOME;
     std::optional<std::string> comment = std::nullopt;
     std::optional<std::int64_t> event_at = std::nullopt;
     

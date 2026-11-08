@@ -78,8 +78,8 @@ namespace icon_type
 struct Item {
     std::optional<std::string> comment = std::nullopt;
     std::string name;
-    UUID id;
-    UUID parent_id;
+    amqhi::UUID id;
+    amqhi::UUID parent_id;
     std::int64_t created_at = 0;
     std::int64_t updated_at = 0;
     std::optional<std::int64_t> event_at = std::nullopt;
@@ -106,14 +106,14 @@ struct Item {
 };
 
 
-void item_delete_on_local(const std::string& app_support_path, char user_id, sqlite3* db, const UUID& item_id);
+void item_delete_on_local(const std::string& app_support_path, char user_id, sqlite3* db, const amqhi::UUID& item_id);
 
-std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_id, const UUID& id);
+std::filesystem::path item_local_directory_path(const std::string& app_support_path, char user_id, const amqhi::UUID& id);
 std::filesystem::path item_local_file_path(const std::string& app_support_path, char user_id, const Item& item);
-std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_id, const UUID& id);
+std::filesystem::path item_thumbnail_path(const std::string& app_support_path, char user_id, const amqhi::UUID& id);
 void item_delete_on_local(CoreBase& core, const Item& item);
 std::filesystem::path item_local_file_path(CoreBase& core, const Item& item);
-std::filesystem::path item_thumbnail_path(CoreBase& core, const UUID& id);
+std::filesystem::path item_thumbnail_path(CoreBase& core, const amqhi::UUID& id);
 
 std::int16_t app_scope_from_vector(const std::vector<std::string>& app_scope);
 std::int16_t app_scope_from_json(const nlohmann::json& app_scope);

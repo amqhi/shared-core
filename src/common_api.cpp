@@ -14,6 +14,7 @@
 #include "notifier_base.h"
 #include "secure_storage_provider_base.h"
 
+using namespace amqhi;
 using namespace event_code;
 
 void api::request_with_auto_refresh(CoreBase& core, const std::function<void()>& execute_request)

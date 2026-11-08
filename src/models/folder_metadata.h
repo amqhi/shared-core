@@ -49,17 +49,17 @@ namespace view_mode
 
 struct FolderMetadata
 {
-    UUID background_id = special_folder::UNKNOWN;
-    UUID icon_id = special_folder::UNKNOWN;
+    amqhi::UUID background_id = special_folder::UNKNOWN;
+    amqhi::UUID icon_id = special_folder::UNKNOWN;
     std::optional<std::uint32_t> background_color = std::nullopt;
     std::optional<std::uint32_t> icon_color = std::nullopt;
     char view_mode;
     char sort_option;
 };
 
-void cache_folder_metadata(sqlite3* db, const UUID& item_id, const FolderMetadata& metadata);
-void sqlite_bind_folder_metadata(sqlite3_stmt* stmt, const UUID& item_id, const FolderMetadata& metadata);
-void delete_folder_metadata(sqlite3* db, const UUID& item_id);
+void cache_folder_metadata(sqlite3* db, const amqhi::UUID& item_id, const FolderMetadata& metadata);
+void sqlite_bind_folder_metadata(sqlite3_stmt* stmt, const amqhi::UUID& item_id, const FolderMetadata& metadata);
+void delete_folder_metadata(sqlite3* db, const amqhi::UUID& item_id);
 FolderMetadata folder_metadata_from_stmt(sqlite3_stmt* stmt);
 FolderMetadata folder_metadata_from_json(const nlohmann::json& json);
 
