@@ -79,6 +79,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\models\uuid.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)bindings\java\java_network_callback.cpp" Condition="'$(IncludeJavaBindings)' == 'true'">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)bindings\java\java_list.cpp" Condition="'$(IncludeJavaBindings)' == 'true'">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -116,6 +119,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\models\uuid.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_string.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
     <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_map.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_network_callback.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
     <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_list.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
     <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_item.h" Condition="'$(IncludeJavaBindings)' == 'true'" />
     <ClInclude Include="$(MSBuildThisFileDirectory)bindings\java\java_uuid.h" Condition="'$(IncludeJavaBindings)' == 'true'" />

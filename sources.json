@@ -69,6 +69,8 @@
     "java_sources": [
         "bindings/java/java_string.h",
         "bindings/java/java_map.h",
+        "bindings/java/java_network_callback.cpp",
+        "bindings/java/java_network_callback.h",
         "bindings/java/java_list.h",
         "bindings/java/java_list.cpp",
         "bindings/java/java_item.h",
