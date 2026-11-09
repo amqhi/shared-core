@@ -83,6 +83,7 @@ def get_shared_definitions():
             ROOT_DIR / "bindings" / "java" / "java_map.h",
             ROOT_DIR / "bindings" / "java" / "java_network_callback.cpp",
             ROOT_DIR / "bindings" / "java" / "java_network_callback.h",
+            ROOT_DIR / "bindings" / "java" / "java_network_provider_base.h",
             ROOT_DIR / "bindings" / "java" / "java_list.h",
             ROOT_DIR / "bindings" / "java" / "java_list.cpp",
             ROOT_DIR / "bindings" / "java" / "java_item.h",

@@ -76,6 +76,7 @@ set(SHARED_JAVA_BINDING_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_map.h
     ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_network_callback.cpp
     ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_network_callback.h
+    ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_network_provider_base.h
     ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_list.h
     ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_list.cpp
     ${CMAKE_CURRENT_LIST_DIR}/bindings/java/java_item.h
