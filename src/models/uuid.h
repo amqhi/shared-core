@@ -27,6 +27,7 @@ namespace amqhi {
         //                |<- 4 bits per char ->|
 
         [[nodiscard]] std::array<std::uint8_t, 16> to_bytes() const noexcept;
+        [[nodiscard]] static UUID random_uuid() noexcept;
 
         static UUID from_bytes(const void* blob_data) noexcept;
 

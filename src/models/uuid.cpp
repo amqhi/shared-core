@@ -3,8 +3,40 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "uuid.h"
+#include <random>
 
 namespace amqhi {
+
+UUID UUID::random_uuid() noexcept
+{
+    std::random_device rd;
+    std::mt19937_64 eng(rd());
+
+    std::uniform_int_distribution<uint32_t> dist(0, 255);
+    std::array<uint8_t, 16> data{};
+
+    for (int i = 0; i < 16; ++i) {
+        data[i] = static_cast<uint8_t>(dist(eng));
+    }
+
+    data[6] = (data[6] & 0x0F) | 0x40;
+    data[8] = (data[8] & 0x3F) | 0x80;
+
+    uint64_t high = 0;
+    uint64_t low = 0;
+
+    for (int i = 0; i < 8; ++i) {
+        high = (high << 8) | data[i];
+    }
+    for (int i = 8; i < 16; ++i) {
+        low = (low << 8) | data[i];
+    }
+
+    UUID uuid{};
+    uuid.high = high;
+    uuid.low = low;
+    return uuid;
+}
 
 std::array<std::uint8_t, 16> UUID::to_bytes() const noexcept
 {
