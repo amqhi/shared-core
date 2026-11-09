@@ -14,7 +14,7 @@ struct JItemSummary
 
     JItemSummary(JNIEnv* e, const Item& item, const std::string& app_support_path, char user_local_id) : env(e) { // NOLINT
         // TODO: Allow configurable package path via arguments
-        jclass item_class = env->FindClass("com/amqhi/cloud/core/ItemSummary");
+        jclass item_class = env->FindClass("com/amqhi/shared/core/ItemSummary");
         init(item_class, item, app_support_path, user_local_id);
     }
 

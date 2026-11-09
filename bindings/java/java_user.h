@@ -24,7 +24,7 @@ inline jobject user_to_juser(JNIEnv* env, jclass userClass, jmethodID methodId, 
 
 inline jobject user_to_juser(JNIEnv* env, const User& user)
 {
-    jclass userClass = env->FindClass("com/amqhi/cloud/core/User");
+    jclass userClass = env->FindClass("com/amqhi/shared/core/User");
     jmethodID methodId = env->GetMethodID(userClass, "<init>", "(CLjava/lang/String;Ljava/lang/String;SLjava/lang/String;)V");
     return user_to_juser(env, userClass, methodId, user);
 }
@@ -35,7 +35,7 @@ struct JUser
     jobject value;
 
     JUser(JNIEnv* e, const User& user) : env(e) {
-      jclass userClass = env->FindClass("com/amqhi/cloud/core/User");
+      jclass userClass = env->FindClass("com/amqhi/shared/core/User");
         jmethodID methodId = env->GetMethodID(userClass, "<init>", "(CLjava/lang/String;Ljava/lang/String;SLjava/lang/String;)V");
         init(userClass, methodId, user);
     }
