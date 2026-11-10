@@ -98,7 +98,7 @@ FolderMetadata folder_metadata_from_stmt(sqlite3_stmt* stmt)
 {
     FolderMetadata folder_metadata;
 
-    if (sqlite3_column_type(stmt, folder_metadata_column_index::BACKGROUND_ID) == SQLITE_NULL)
+    if (sqlite3_column_type(stmt, folder_metadata_column_index::BACKGROUND_ID) != SQLITE_NULL)
     {
         const void* background_id_bytes = sqlite3_column_blob(stmt, folder_metadata_column_index::BACKGROUND_ID);
         folder_metadata.background_id = UUID::from_bytes(background_id_bytes);
@@ -115,7 +115,7 @@ FolderMetadata folder_metadata_from_stmt(sqlite3_stmt* stmt)
     {
         folder_metadata.background_color = sqlite3_column_int(stmt, folder_metadata_column_index::BACKGROUND_COLOR);
     }
-    if (sqlite3_column_type(stmt, folder_metadata_column_index::ICON_ID) == SQLITE_NULL)
+    if (sqlite3_column_type(stmt, folder_metadata_column_index::ICON_ID) != SQLITE_NULL)
     {
         const void* icon_id_bytes = sqlite3_column_blob(stmt, folder_metadata_column_index::ICON_ID);
         folder_metadata.icon_id = UUID::from_bytes(icon_id_bytes);
