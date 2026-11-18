@@ -12,6 +12,7 @@
 #include <filesystem>
 #include "uuid.h"
 
+struct ItemAttributes;
 class CoreBase;
 struct FileMetadata;
 struct FolderMetadata;
@@ -100,6 +101,8 @@ struct Item {
     }
 
     void save(sqlite3* db) const;
+
+    void update(const ItemAttributes& item_attributes);
 
     void setup_icon_type(const FileMetadata& file_metadata);
     void setup_icon_type(const FolderMetadata& folder_metadata);

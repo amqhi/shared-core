@@ -122,6 +122,16 @@ void Item::save(sqlite3* db) const
     sqlite3_finalize(stmt);
 }
 
+void Item::update(const ItemAttributes& item_attributes)
+{
+    name = item_attributes.name;
+    parent_id = item_attributes.parent_id;
+    app_scope = item_attributes.app_scope;
+    comment = item_attributes.comment;
+    event_at = item_attributes.event_at;
+    encrypted = item_attributes.encrypted;
+}
+
 void Item::setup_icon_type(const FileMetadata& file_metadata)
 {
     const std::string& mime = file_metadata.mime_type;

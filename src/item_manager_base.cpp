@@ -757,12 +757,7 @@ void ItemManagerBase::update_item(const UUID& id, const ItemAttributes& item_att
                                         {
                                             if (response.status_code == 200)
                                             {
-                                                m_items[id].name = item_attributes.name;
-                                                m_items[id].parent_id = item_attributes.parent_id;
-                                                m_items[id].app_scope = item_attributes.app_scope;
-                                                m_items[id].comment = item_attributes.comment;
-                                                m_items[id].event_at = item_attributes.event_at;
-                                                m_items[id].encrypted = item_attributes.encrypted;
+                                                m_items[id].update(item_attributes);
                                                 m_items[id].save(m_core.database_provider().database());
                                                 json data;
                                                 data["id"] = id.to_string();
