@@ -87,6 +87,13 @@ protected:
     virtual void refresh_folders(amqhi::RefreshItemsContext* context);
     virtual void refresh_themes(amqhi::RefreshItemsContext* context);
     virtual void refresh_files(amqhi::RefreshItemsContext* context);
+    virtual void refresh_notes(amqhi::RefreshItemsContext* context);
+    virtual void refresh_songs(amqhi::RefreshItemsContext* context);
+    virtual void refresh_artists(amqhi::RefreshItemsContext* context);
+    virtual void refresh_albums(amqhi::RefreshItemsContext* context);
+    virtual void refresh_playlists(amqhi::RefreshItemsContext* context);
+    virtual void refresh_links(amqhi::RefreshItemsContext* context);
+    virtual void refresh_aliases(amqhi::RefreshItemsContext* context);
 
     // Prefix 'apply_' indicates mutating internal state (m_items, m_id_lists)
     void apply_create_item(const Item& item);

@@ -332,7 +332,15 @@ void ItemManagerBase::refresh()
                                       });
     auto* context = new RefreshItemsContext();
     refresh_folders(context);
+    refresh_themes(context);
     refresh_files(context);
+    refresh_notes(context);
+    refresh_songs(context);
+    refresh_artists(context);
+    refresh_albums(context);
+    refresh_playlists(context);
+    refresh_links(context);
+    refresh_aliases(context);
 }
 
 void ItemManagerBase::sort_items(char option, const UUID& parent_id)
@@ -1387,6 +1395,10 @@ void ItemManagerBase::refresh_folders(RefreshItemsContext* context)
                               });
 }
 
+void ItemManagerBase::refresh_themes(RefreshItemsContext* context)
+{
+}
+
 void ItemManagerBase::refresh_files(RefreshItemsContext* context)
 {
     api::files::get_files(m_core, [this, context](const Response& response)
@@ -1462,70 +1474,31 @@ void ItemManagerBase::refresh_files(RefreshItemsContext* context)
 
 void ItemManagerBase::refresh_notes(RefreshItemsContext* context)
 {
-    api::notes::get_notes(m_core, [this, context](const Response& response)
-                          {
-                              if (response.status_code == 200)
-                              {
-                                  auto body = json::parse(response.body, nullptr, false);
-                                  if (body.is_discarded() || !body.is_object())
-                                  {
-                                      context->success = false;
-                                      notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
-                                                    response.status_code,
-                                                    response.body);
-                                  }
-                                  else
-                                  {
-                                      // bool has_more = json_utils::get_bool(body, "has_more", false);
-                                      // if (has_more)
-                                      // {
-                                      //
-                                      // }
-                                      if (auto it = body.find("notes"); it != body.end() && it->
-                                          is_array())
-                                      {
-                                          for (auto& child : *it)
-                                          {
-                                              Item item = item_from_json(child);
-                                              if (item.updated_at == m_items[item.id].updated_at)
-                                              {
-                                                  continue;
-                                              }
-                                              item.icon_type = icon_type::MARKDOWN;
-                                              item.status = item_status::ONLINE_ONLY;
-                                              const auto item_id = item.id;
-                                              const auto parent_id = item.parent_id;
 
-                                              item.save(m_core.database_provider().database());
+}
 
-                                              m_items[item_id] = std::move(item);
-                                              m_id_lists[parent_id].push_back(item_id);
-                                          }
-                                      }
-                                  }
-                              }
-                              else
-                              {
-                                  notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
-                                                         response.status_code,
-                                                         response.body);
-                              }
+void ItemManagerBase::refresh_songs(RefreshItemsContext* context)
+{
+}
 
-                              context->completed_task_count++;
-                              if (refresh_completed(context))
-                              {
-                                  on_refresh_completed(context);
-                              }
-                          }, [this, context](std::int16_t error_code, const std::string& data)
-                          {
-                              handle_network_error(m_core.notifier(), error_code, data);
-                              context->success = false;
-                              context->completed_task_count++;
-                              if (refresh_completed(context))
-                              {
-                                  on_refresh_completed(context);
-                              }
-                          });
+void ItemManagerBase::refresh_artists(RefreshItemsContext* context)
+{
+}
+
+void ItemManagerBase::refresh_albums(RefreshItemsContext* context)
+{
+}
+
+void ItemManagerBase::refresh_playlists(RefreshItemsContext* context)
+{
+}
+
+void ItemManagerBase::refresh_links(RefreshItemsContext* context)
+{
+}
+
+void ItemManagerBase::refresh_aliases(RefreshItemsContext* context)
+{
 }
 
 void ItemManagerBase::download_thumbnail(const UUID& id)
