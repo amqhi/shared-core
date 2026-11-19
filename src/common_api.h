@@ -263,6 +263,14 @@ namespace api
         void get_folders(CoreBase& core, const OnResponse& on_response,
                          const OnFailure& on_failure);
     }
+
+    namespace notes
+    {
+        void get_notes_raw(CoreBase& core, std::function<void(const amqhi::HttpResponse& response)> on_response,
+                    std::function<void(std::int16_t error_code, const std::string& data)> on_failure);
+        void get_notes(CoreBase& core, std::function<void(const amqhi::HttpResponse& response)> on_response,
+                       std::function<void(std::int16_t error_code, const std::string& data)> on_failure);
+    }
 }
 
 #endif //SHARED_COMMON_API_H

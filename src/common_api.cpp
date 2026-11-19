@@ -30,6 +30,25 @@ void api::request_with_auto_refresh(CoreBase& core, const std::function<void()>&
     execute_request();
 }
 
+void api::notes::get_notes_raw(CoreBase& core, std::function<void(const amqhi::HttpResponse& response)> on_response,
+                               std::function<void(std::int16_t error_code, const std::string& data)> on_failure)
+{
+    std::string url = core.settings().instance_url() + "/notes";
+    std::map<std::string, std::string> headers;
+    headers["Authorization"] = "Bearer " + core.selected_user()->access_token;
+    core.network_provider().get(url,
+                                headers,
+                                std::move(on_response), std::move(on_failure));
+}
+
+void api::notes::get_notes(CoreBase& core, std::function<void(const amqhi::HttpResponse& response)> on_response,
+                           std::function<void(std::int16_t error_code, const std::string& data)> on_failure)
+{
+    request_with_auto_refresh(core, [&core, on_response = std::move(on_response), on_failure = std::move(on_failure)]()
+    {
+        get_notes_raw(core, on_response, on_failure);
+    });
+}
 
 void api::sync::get_sync_events_raw(CoreBase& core, const OnResponse& on_response, const OnFailure& on_failure)
 {
