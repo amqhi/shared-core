@@ -17,6 +17,15 @@ class INetworkProvider;
 class INotifier;
 struct User;
 
+namespace amqhi
+{
+    struct RefreshItemsContext
+    {
+        std::uint8_t completed_task_count = 0;
+        bool success = true;
+    };
+}
+
 class ItemManagerBase
 {
     public:
@@ -33,6 +42,8 @@ class ItemManagerBase
     virtual void clear();
     virtual void initialize();
     virtual void sync();
+    // Start a refresh for each item type. Each task increments completed_task_count when it finishes.
+    // Once the target count is reached, metadata refresh is done and file thumbnails are downloaded next.
     virtual void refresh();
     void sort_items(char option, const amqhi::UUID& parent_id);
     void sort_items(const amqhi::UUID& parent_id);
@@ -53,7 +64,6 @@ class ItemManagerBase
     void restore_items(const std::vector<amqhi::UUID>& ids, const amqhi::UUID& old_parent_id);
     void delete_item(const amqhi::UUID& id);
     void delete_items(const std::vector<amqhi::UUID>& ids);
-    void download_thumbnails(std::int16_t event_code);
     void download_thumbnail(const amqhi::UUID& id);
     void make_item_available_offline(const amqhi::UUID& id);
     void make_item_online_only(const amqhi::UUID& id);
@@ -70,10 +80,13 @@ protected:
     std::unordered_map<amqhi::UUID, FileMetadata> m_file_metadata;
     std::unordered_map<amqhi::UUID, FolderMetadata> m_folder_metadata;
 
-private:
+    virtual bool refresh_completed(amqhi::RefreshItemsContext* context);
 
-    void refresh_phase1_files();
-    void refresh_phase2_folders();
+    /// After metadata refresh finishes, download thumbnails and notify the UI of success or failure.
+    void on_refresh_completed(amqhi::RefreshItemsContext* context);
+    virtual void refresh_folders(amqhi::RefreshItemsContext* context);
+    virtual void refresh_themes(amqhi::RefreshItemsContext* context);
+    virtual void refresh_files(amqhi::RefreshItemsContext* context);
 
     // Prefix 'apply_' indicates mutating internal state (m_items, m_id_lists)
     void apply_create_item(const Item& item);

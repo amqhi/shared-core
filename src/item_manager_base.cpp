@@ -323,11 +323,16 @@ void ItemManagerBase::sync()
 }
 
 // TODO: Handle paginated items during refresh
-/// Fetch each item type or thumbnails in order and save it locally. The next step starts after the current request finishes.
 void ItemManagerBase::refresh()
 {
-    api::sync::acknowledge_events_all(m_core, [](const Response& response) {}, [](std::int16_t error_code, const std::string& data) {});
-    refresh_phase1_files();
+    api::sync::acknowledge_events_all(m_core, [](const Response& response)
+                                      {
+                                      }, [](std::int16_t error_code, const std::string& data)
+                                      {
+                                      });
+    auto* context = new RefreshItemsContext();
+    refresh_folders(context);
+    refresh_files(context);
 }
 
 void ItemManagerBase::sort_items(char option, const UUID& parent_id)
@@ -1178,186 +1183,153 @@ void ItemManagerBase::delete_items(const std::vector<UUID>& ids)
                                   });
 }
 
-void ItemManagerBase::download_thumbnails(int16_t event_code)
+bool ItemManagerBase::refresh_completed(RefreshItemsContext* context)
 {
-    if (m_items.empty())
-    {
-        m_core.notifier().notify(event_code);
-        return;
-    }
+    // Only folders, files, and notes are implemented so far, so the expected count is 3.
+    return context->completed_task_count == 3;
+}
 
-    int* count = new int(0);
-    for (auto& it : m_items)
+void ItemManagerBase::on_refresh_completed(RefreshItemsContext* context)
+{
+    if (context->success)
     {
-        const auto& id = it.first;
-        if (m_file_metadata[id].mime_type.compare(0, 6, "image/") != 0 && m_file_metadata[id].mime_type.
-            compare(0, 6, "video/") != 0 && m_file_metadata[id].mime_type.compare(0, 6, "audio/") != 0)
+        delete context;
+        if (m_items.empty())
         {
-            (*count)++;
-            if (*count == m_items.size())
-            {
-                delete count;
-                m_core.notifier().notify(event_code);
-            }
-            continue;
+            m_core.notifier().notify(REFRESH_SUCCESS);
+            return;
         }
 
-        api::items::get_thumbnail_download_url(m_core, id.to_string(),
-                                               [this, id, count, event_code](
-                                               const Response& response)
-                                               {
-                                                   fs::path thumbnail_path = item_thumbnail_path(m_core, id);
-                                                   if (!fs::exists(thumbnail_path.parent_path()))
+        // Counts finished item handling, including items that skip thumbnail download.
+        // Increment on each skip, success, or failure. When the count reaches m_items.size(),
+        // refresh is complete and count is deleted.
+        int* count = new int(0);
+        for (auto& it : m_items)
+        {
+            const auto& id = it.first;
+            if (it.second.type != item_type::FILE)
+            {
+                (*count)++;
+                if (*count == m_items.size())
+                {
+                    delete count;
+                    m_core.notifier().notify(REFRESH_SUCCESS);
+                }
+                continue;
+            }
+            if (m_file_metadata[id].mime_type.compare(0, 6, "image/") != 0 && m_file_metadata[id].mime_type.
+                compare(0, 6, "video/") != 0 && m_file_metadata[id].mime_type.compare(0, 6, "audio/") != 0)
+            {
+                (*count)++;
+                if (*count == m_items.size())
+                {
+                    delete count;
+                    m_core.notifier().notify(REFRESH_SUCCESS);
+                }
+                continue;
+            }
+
+            api::items::get_thumbnail_download_url(m_core, id.to_string(),
+                                                   [this, id, count](
+                                                   const Response& response)
                                                    {
-                                                       fs::create_directories(thumbnail_path.parent_path());
-                                                   }
-                                                   if (response.status_code == 200)
-                                                   {
-                                                       const std::string& download_url = response.body;
-                                                       std::map<std::string, std::string> headers;
-                                                       nlohmann::json task_info;
-                                                       task_info["type"] = transfer_type::THUMBNAIL;
-                                                       task_info["id"] = id.to_string();
-                                                       task_info["parent_id"] = m_items[id].parent_id.to_string();
-                                                       m_core.network_provider().download_file(
-                                                           download_url,
-                                                           headers,
-                                                           thumbnail_path.string(),
-                                                           task_info,
-                                                           [this, count, event_code](
-                                                           const Response& response)
-                                                           {
-                                                               (*count)++;
-                                                               if (*count == m_items.size())
+                                                       fs::path thumbnail_path = item_thumbnail_path(m_core, id);
+                                                       if (!fs::exists(thumbnail_path.parent_path()))
+                                                       {
+                                                           fs::create_directories(thumbnail_path.parent_path());
+                                                       }
+                                                       if (response.status_code == 200)
+                                                       {
+                                                           const std::string& download_url = response.body;
+                                                           std::map<std::string, std::string> headers;
+                                                           nlohmann::json task_info;
+                                                           task_info["type"] = transfer_type::THUMBNAIL;
+                                                           task_info["id"] = id.to_string();
+                                                           task_info["parent_id"] = m_items[id].parent_id.to_string();
+                                                           m_core.network_provider().download_file(
+                                                               download_url,
+                                                               headers,
+                                                               thumbnail_path.string(),
+                                                               task_info,
+                                                               [this, count](
+                                                               const Response& response)
                                                                {
-                                                                   delete count;
-                                                                   m_core.notifier().notify(event_code);
-                                                               }
-                                                           }, [this, count, event_code](
-                                                           std::int16_t error_code, const std::string& data)
-                                                           {
-                                                               (*count)++;
-                                                               if (*count == m_items.size())
+                                                                   (*count)++;
+                                                                   if (*count == m_items.size())
+                                                                   {
+                                                                       delete count;
+                                                                       m_core.notifier().notify(REFRESH_SUCCESS);
+                                                                   }
+                                                               }, [this, count](
+                                                               std::int16_t error_code, const std::string& data)
                                                                {
-                                                                   delete count;
-                                                                   m_core.notifier().notify(event_code);
-                                                               }
-                                                           });
-                                                   }
-                                                   else
+                                                                   (*count)++;
+                                                                   if (*count == m_items.size())
+                                                                   {
+                                                                       delete count;
+                                                                       m_core.notifier().notify(REFRESH_SUCCESS);
+                                                                   }
+                                                               });
+                                                       }
+                                                       else
+                                                       {
+                                                           (*count)++;
+                                                           nlohmann::json data;
+                                                           data["status_code"] = response.status_code;
+                                                           data["response"] = response.body;
+                                                           data["id"] = id.to_string();
+                                                           m_core.notifier().notify(
+                                                               ITEM_THUMBNAIL_DOWNLOAD_FAILURE, data);
+                                                           if (*count == m_items.size())
+                                                           {
+                                                               delete count;
+                                                               m_core.notifier().notify(REFRESH_SUCCESS);
+                                                           }
+                                                       }
+                                                   }, [this, count](
+                                                   std::int16_t error_code, const std::string& data)
                                                    {
                                                        (*count)++;
-                                                       nlohmann::json data;
-                                                       data["status_code"] = response.status_code;
-                                                       data["response"] = response.body;
-                                                       data["id"] = id.to_string();
-                                                       m_core.notifier().notify(ITEM_THUMBNAIL_DOWNLOAD_FAILURE, data);
                                                        if (*count == m_items.size())
                                                        {
                                                            delete count;
-                                                           m_core.notifier().notify(event_code);
+                                                           m_core.notifier().notify(REFRESH_SUCCESS);
                                                        }
-                                                   }
-                                               }, [this, count, event_code](
-                                               std::int16_t error_code, const std::string& data)
-                                               {
-                                                   (*count)++;
-                                                   if (*count == m_items.size())
-                                                   {
-                                                       delete count;
-                                                       m_core.notifier().notify(event_code);
-                                                   }
-                                               });
+                                                   });
+        }
+    }
+    else
+    {
+        delete context;
+        m_core.notifier().notify(REFRESH_FAILURE);
     }
 }
 
-void ItemManagerBase::refresh_phase1_files()
+void ItemManagerBase::refresh_folders(RefreshItemsContext* context)
 {
-    api::files::get_files(m_core, [this](const Response& response)
-                          {
-                              if (response.status_code == 200)
-                              {
-                                  auto files_body = json::parse(response.body, nullptr, false);
-                                  if (files_body.is_discarded() || !files_body.is_object())
-                                  {
-                                      notify_request_failure(m_core.notifier(), REFRESH_FAILURE,
-                                                             response.status_code,
-                                                             response.body);
-                                  }
-                                  else
-                                  {
-                                      // bool has_more_files = json_utils::get_bool(files_body, "has_more", false);
-                                      // if (has_more_files)
-                                      // {
-                                      //
-                                      // }
-                                      if (auto it = files_body.find("files"); it != files_body.end() && it->
-                                          is_array())
-                                      {
-                                          for (auto& child : *it)
-                                          {
-                                              Item item = item_from_json(child);
-                                              if (item.updated_at == m_items[item.id].updated_at)
-                                              {
-                                                  continue;
-                                              }
-                                              FileMetadata file_metadata = file_metadata_from_json(child);
-                                              item.setup_icon_type(file_metadata);
-                                              const auto item_id = item.id;
-                                              const auto parent_id = item.parent_id;
-
-                                              item.save(m_core.database_provider().database());
-                                              cache_file_metadata(m_core.database_provider().database(),
-                                                                  file_metadata);
-
-                                              m_items[item_id] = std::move(item);
-                                              m_id_lists[parent_id].push_back(item_id);
-                                              m_file_metadata[item_id] = std::move(file_metadata);
-                                          }
-                                      }
-
-                                      refresh_phase2_folders();
-                                  }
-                              }
-                              else
-                              {
-                                  notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
-                                                         response.status_code,
-                                                         response.body);
-                                  refresh_phase2_folders();
-                              }
-                          }, [this](std::int16_t error_code, const std::string& data)
-                          {
-                              handle_network_error(m_core.notifier(), error_code, data);
-                              refresh_phase2_folders();
-                          });
-}
-
-void ItemManagerBase::refresh_phase2_folders()
-{
-    api::folders::get_folders(m_core, [this](const Response& response)
+    api::folders::get_folders(m_core, [this, context](const Response& response)
                               {
                                   if (response.status_code == 200)
                                   {
-                                      auto folders_body = json::parse(
+                                      auto body = json::parse(
                                           response.body, nullptr, false);
-                                      if (folders_body.is_discarded() || !folders_body.
+                                      if (body.is_discarded() || !body.
                                           is_object())
                                       {
-                                          notify_request_failure(
-                                              m_core.notifier(),
-                                              REFRESH_FAILURE, response.status_code,
-                                              response.body);
+                                          context->success = false;
+                                          notify_request_failure(m_core.notifier(), FETCH_FOLDERS_FAILURE,
+                                                    response.status_code,
+                                                    response.body);
                                       }
                                       else
                                       {
-                                          // bool has_more_folders = json_utils::get_bool(folders_body, "has_more", false);
-                                          // if (has_more_folders)
+                                          // bool has_more = json_utils::get_bool(body, "has_more", false);
+                                          // if (has_more)
                                           // {
                                           //
                                           // }
-                                          if (auto it = folders_body.find("folders"); it
-                                              != folders_body.end() && it->is_array())
+                                          if (auto it = body.find("folders"); it
+                                              != body.end() && it->is_array())
                                           {
                                               for (auto& child : *it)
                                               {
@@ -1386,22 +1358,174 @@ void ItemManagerBase::refresh_phase2_folders()
                                                       item_id);
                                               }
                                           }
-
-                                          download_thumbnails(REFRESH_SUCCESS);
                                       }
                                   }
                                   else
                                   {
+                                      context->success = false;
                                       notify_request_failure(
                                           m_core.notifier(), FETCH_FOLDERS_FAILURE,
                                           response.status_code, response.body);
                                   }
-                              }, [this](std::int16_t error_code,
-                                        const std::string& data)
+
+                                  context->completed_task_count++;
+                                  if (refresh_completed(context))
+                                  {
+                                      on_refresh_completed(context);
+                                  }
+                              }, [this, context](std::int16_t error_code,
+                                                 const std::string& data)
                               {
                                   handle_network_error(
                                       m_core.notifier(), error_code, data);
+                                  context->success = false;
+                                  context->completed_task_count++;
+                                  if (refresh_completed(context))
+                                  {
+                                      on_refresh_completed(context);
+                                  }
                               });
+}
+
+void ItemManagerBase::refresh_files(RefreshItemsContext* context)
+{
+    api::files::get_files(m_core, [this, context](const Response& response)
+                          {
+                              if (response.status_code == 200)
+                              {
+                                  auto files_body = json::parse(response.body, nullptr, false);
+                                  if (files_body.is_discarded() || !files_body.is_object())
+                                  {
+                                      context->success = false;
+                                      notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
+                                                    response.status_code,
+                                                    response.body);
+                                  }
+                                  else
+                                  {
+                                      // bool has_more_files = json_utils::get_bool(files_body, "has_more", false);
+                                      // if (has_more_files)
+                                      // {
+                                      //
+                                      // }
+                                      if (auto it = files_body.find("files"); it != files_body.end() && it->
+                                          is_array())
+                                      {
+                                          for (auto& child : *it)
+                                          {
+                                              Item item = item_from_json(child);
+                                              if (item.updated_at == m_items[item.id].updated_at)
+                                              {
+                                                  continue;
+                                              }
+                                              FileMetadata file_metadata = file_metadata_from_json(child);
+                                              item.status = item_status::ONLINE_ONLY;
+                                              item.setup_icon_type(file_metadata);
+                                              const auto item_id = item.id;
+                                              const auto parent_id = item.parent_id;
+
+                                              item.save(m_core.database_provider().database());
+                                              cache_file_metadata(m_core.database_provider().database(),
+                                                                  file_metadata);
+
+                                              m_items[item_id] = std::move(item);
+                                              m_id_lists[parent_id].push_back(item_id);
+                                              m_file_metadata[item_id] = std::move(file_metadata);
+                                          }
+                                      }
+                                  }
+                              }
+                              else
+                              {
+                                  context->success = false;
+                                  notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
+                                                         response.status_code,
+                                                         response.body);
+                              }
+
+                              context->completed_task_count++;
+                              if (refresh_completed(context))
+                              {
+                                  on_refresh_completed(context);
+                              }
+                          }, [this, context](std::int16_t error_code, const std::string& data)
+                          {
+                              handle_network_error(m_core.notifier(), error_code, data);
+                              context->success = false;
+                              context->completed_task_count++;
+                              if (refresh_completed(context))
+                              {
+                                  on_refresh_completed(context);
+                              }
+                          });
+}
+
+void ItemManagerBase::refresh_notes(RefreshItemsContext* context)
+{
+    api::notes::get_notes(m_core, [this, context](const Response& response)
+                          {
+                              if (response.status_code == 200)
+                              {
+                                  auto body = json::parse(response.body, nullptr, false);
+                                  if (body.is_discarded() || !body.is_object())
+                                  {
+                                      context->success = false;
+                                      notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
+                                                    response.status_code,
+                                                    response.body);
+                                  }
+                                  else
+                                  {
+                                      // bool has_more = json_utils::get_bool(body, "has_more", false);
+                                      // if (has_more)
+                                      // {
+                                      //
+                                      // }
+                                      if (auto it = body.find("notes"); it != body.end() && it->
+                                          is_array())
+                                      {
+                                          for (auto& child : *it)
+                                          {
+                                              Item item = item_from_json(child);
+                                              if (item.updated_at == m_items[item.id].updated_at)
+                                              {
+                                                  continue;
+                                              }
+                                              item.icon_type = icon_type::MARKDOWN;
+                                              item.status = item_status::ONLINE_ONLY;
+                                              const auto item_id = item.id;
+                                              const auto parent_id = item.parent_id;
+
+                                              item.save(m_core.database_provider().database());
+
+                                              m_items[item_id] = std::move(item);
+                                              m_id_lists[parent_id].push_back(item_id);
+                                          }
+                                      }
+                                  }
+                              }
+                              else
+                              {
+                                  notify_request_failure(m_core.notifier(), FETCH_FILES_FAILURE,
+                                                         response.status_code,
+                                                         response.body);
+                              }
+
+                              context->completed_task_count++;
+                              if (refresh_completed(context))
+                              {
+                                  on_refresh_completed(context);
+                              }
+                          }, [this, context](std::int16_t error_code, const std::string& data)
+                          {
+                              handle_network_error(m_core.notifier(), error_code, data);
+                              context->success = false;
+                              context->completed_task_count++;
+                              if (refresh_completed(context))
+                              {
+                                  on_refresh_completed(context);
+                              }
+                          });
 }
 
 void ItemManagerBase::download_thumbnail(const UUID& id)
